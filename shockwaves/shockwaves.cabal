@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                shockwaves
-version:             2.1.0
+version:             0.0.0
 license:             BSD-2-Clause
 author:              Marijn Adriaanse <marijn@qbaylogic.com>
 maintainer:          QBayLogic B.V. <devops@qbaylogic.com>
