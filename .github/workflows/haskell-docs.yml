@@ -1,4 +1,4 @@
-name: '> haddock-docs'
+name: '> haskell-release-docs'
 
 on:
   push:
