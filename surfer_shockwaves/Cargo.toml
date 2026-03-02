@@ -1,0 +1,20 @@
+[package]
+name = "surfer_shockwaves"
+version = "2.0.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+camino = "1.2.1"
+compile-time = "0.2.0"
+egui = { version = "0.33.2", features = ["serde"] }
+either = "1.15.0"
+extism-pdk = "1.4.1"
+lazy_static = "1.5.0"
+num-bigint = "0.4.6"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+surfer-translation-types.git = "https://gitlab.com/surfer-project/surfer.git"
+toml = "0.9.8"

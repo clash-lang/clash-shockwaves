@@ -1,0 +1,28 @@
+
+name: 'surfer-docs'
+
+on:
+  pull_request:
+    paths:
+      - 'surfer_shockwaves/**'
+  workflow_dispatch:
+
+env:
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Create docs
+        run: |
+          cd $GITHUB_WORKSPACE/surfer_shockwaves
+          cargo doc --document-private-items --target-dir docs --no-deps
+      - name: Upload Rust docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rust docs
+          path: surfer_shockwaves/docs/doc
+          if-no-files-found: error
