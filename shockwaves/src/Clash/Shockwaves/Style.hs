@@ -28,6 +28,9 @@ Finally, there are a few special styles.
 - 'WSVar' makes it possible to define style variables in config files - this can also
   be created by using a string literal starting with @$@, which uses 'WSDefault' as the
   fallback value.
+- 'WSHidden' makes the signal appear as if it has not been assigned a value at all.
+  This still allows the hidden text to be used in the construction of the value of
+  a supersignal.
 
 Some examples:
 
