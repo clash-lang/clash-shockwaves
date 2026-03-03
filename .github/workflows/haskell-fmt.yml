@@ -1,0 +1,27 @@
+
+name: 'haskell-fmt'
+
+on:
+  pull_request:
+    paths:
+      - 'shockwaves/src**'
+  workflow_dispatch:
+
+env:
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.10.3'
+          cabal-version: '3.14.2.0'
+      - name: Check formatting
+        run: |
+          cd $GITHUB_WORKSPACE/shockwaves
+          fourmolu -m check src
