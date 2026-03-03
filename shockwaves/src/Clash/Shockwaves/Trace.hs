@@ -50,6 +50,8 @@ main = do
 -}
 
 -- adapted from Clash.Signal.Trace
+
+{- FOURMOLU_DISABLE -}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -656,3 +658,5 @@ waitForTraces# maps signal traceNames = do
       deepseqX
         s0
         (go ss nm)
+
+{- FOURMOLU_ENABLE -}

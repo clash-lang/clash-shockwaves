@@ -107,6 +107,7 @@ instance Waveform EnableWave where
     , vConst enOn
     ]
 
+{- FOURMOLU_DISABLE -}
 -- | Control the style of a combined disable and reset through style variable
 -- @reset_on_enable_off@.
 instance KnownDomain dom => WaveformLUT (CREWave dom) where
@@ -123,6 +124,7 @@ instance KnownDomain dom => WaveformLUT (CREWave dom) where
           isRst (ResetWave r') = case resetPolarity @dom of
             SActiveHigh -> r'
             SActiveLow  -> not r'
+{- FOURMOLU_ENABLE -}
 
 -- | Produce an alternating signal for a clock.
 clkSignal :: (KnownDomain dom) => Clock dom -> Signal dom ClockWave

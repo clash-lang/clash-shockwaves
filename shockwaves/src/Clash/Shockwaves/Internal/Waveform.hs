@@ -49,7 +49,7 @@ import           Data.Ord             (Down)
 import           Data.Functor.Identity(Identity)
 
 
-
+{- FOURMOLU_DISABLE -}
 #ifndef MAX_TUPLE_SIZE
 #ifdef LARGE_TUPLES
 
@@ -68,7 +68,7 @@ import Constants (mAX_TUPLE_SIZE)
 #endif
 #endif
 #endif
-
+{- FOURMOLU_ENABLE -}
 
 -- making values
 

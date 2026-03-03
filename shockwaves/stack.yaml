@@ -6,3 +6,7 @@ extra-deps:
 #- clash-prelude-1.8.2@sha256:a9409f93aa7806a4fb4d39efc7fae78f638cfd0e9bd57140adf04e0f2fcc27bf,17871
 #- clash-prelude-hedgehog-1.8.2@sha256:4ffc0a4897a60cfae1bee5feaa946be652942bcdd624b3bf153b4596754ddd0b,1410
 #- prettyprinter-interp-0.2.0.0@sha256:69c339a95b265dab9b3478ca19ec96952b6b472bd0ff6e2127112a9562362c1d,2086
+
+# for fourmolu:
+- Cabal-syntax-3.16.0.0@sha256:6a35036763557301876c5b7a448de4f1cb54fe1e223ff6c4c0c1fdd6df635a65,7509
+- Cabal-3.16.0.0@sha256:7d5d80355ac02c42cb90ec575d83653139a2054ab9aac0753527ced8f343c6b3,14024

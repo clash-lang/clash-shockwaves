@@ -77,18 +77,18 @@ getVal t = case t of
 filterSignals :: [(SubSignal,Translation)] -> [(SubSignal,Translation)]
 filterSignals = L.filter ((/="") . fst)
 
-
+{- FOURMOLU_DISABLE -}
 -- | Change bits using 'BitPart'.
 changeBits :: BitPart -> BitList -> BitList
 changeBits (BPConcat bps) bin = L.foldl (<>) "" $ L.map (`changeBits` bin) bps
 changeBits (BPLit bl)    _bin = bl
 changeBits (BPSlice s)    bin = BL.slice s bin
+{- FOURMOLU_ENABLE -}
 
 
 
 
-
-
+{- FOURMOLU_DISABLE -}
 -- | Decode a string of bits into an unsigned integer.
 decodeUns :: Integer -> String -> Maybe Integer
 decodeUns k ""      = Just k
@@ -102,7 +102,7 @@ decodeSig ""      = Just 0
 decodeSig ('0':r) = decodeUns 0 r
 decodeSig ('1':r) = decodeUns (-1) r
 decodeSig _       = Nothing
-
+{- FOURMOLU_ENABLE -}
 
 -- | Complete a translation based on already translated subsignals.
 --
@@ -284,6 +284,7 @@ fromTranslation (Translation _ subs) = Structure $ L.map (second fromTranslation
 
 -- translator based functions
 
+{- FOURMOLU_DISABLE -}
 -- | Run a function on a translator's subtranslators, and combine the results.
 -- This follows 'TRef' references.
 foldTranslator :: (Translator -> a) -> ([a] -> b) -> Translator -> b
@@ -305,6 +306,7 @@ foldTranslator m f (Translator _ variant) = case variant of
   TStyled _ t                       -> f [m t]
   TDuplicate _ t                    -> f [m t]
   TChangeBits{sub}                  -> f [m sub]
+{- FOURMOLU_ENABLE -}
 
 -- | Test if there is a LUT translator in a translator (following references).
 hasLutT :: Translator -> Bool

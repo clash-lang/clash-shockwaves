@@ -27,6 +27,7 @@ createDomain vSystem{vName="Dom50", vPeriod=hzToPeriod 50e6}
 undef :: a
 undef = Clash.Prelude.undefined
 
+{- FOURMOLU_DISABLE -}
 tests :: [(String, R'->R')]
 tests =
   [ test "S"  $ values [S,undef]
@@ -45,7 +46,7 @@ tests =
   , test "NumRepU3" $ values $ NumRep <$> [0,1,3,4,7,undef :: Unsigned 3]
   , test "LittleEndian" $ values $ LittleEndian <$> [0,1,16,256,65536]
   ]
-
+{- FOURMOLU_ENABLE -}
 
 
 type R = Unsigned 8
