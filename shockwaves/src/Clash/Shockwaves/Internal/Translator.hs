@@ -180,7 +180,7 @@ translateFromSubs (Translator _ translator) subs = case translator of
 -- | Translate a 'BitList' using the provided translator.
 translateBinT :: Translator -> BitList -> Translation
 translateBinT trans@(Translator width variant) bin''@(BL _ _ blLength)
-  | width <= blLength, bin <- BL.take width bin'' = case variant of
+  | width <= fromIntegral blLength, bin <- BL.take width bin'' = case variant of
     TRef _ TypeRef{translateBinRef} -> translateBinRef bin
     TLut _ TypeRef{translateBinRef} -> translateBinRef bin
     TNumber{format,spacer} -> Translation (if isJust render then render else Just ("undefined",WSError,11) ) []

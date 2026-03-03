@@ -23,7 +23,7 @@ import qualified Data.Text as Text
 data BitList = BL
   { unsafeMask      :: !Natural
   , unsafeToNatural :: !Natural
-  , bitLength       :: !Int
+  , bitLength       :: !Word
   } deriving (Eq,Ord)
 
 instance Show BitList where
@@ -66,29 +66,31 @@ drop :: Int -> BitList -> BitList
 drop x = snd . split x
 
 -- | Take only the /n/ most significant bits.
-take :: Int -> BitList -> BitList
-take n (BL m i l) | n > l || n < 0 = error ("Attempt to take "<>show n<>" from BitList of size "<>show l)
-                  | otherwise = BL m' i' n
+take :: Integral a => a -> BitList -> BitList
+take n' (BL m i l) | n > l || n < 0 = error ("Attempt to take "<>show n<>" from BitList of size "<>show l)
+                   | otherwise = BL m' i' n
   where
+    n = fromIntegral n' :: Word
     s = l - n
-    m' = shiftR m s
-    i' = shiftR i s
+    m' = shiftR m (fromIntegral s)
+    i' = shiftR i (fromIntegral s)
 
 -- | Split a 'BitList' into the /n/ most significant bits,
 -- and the rest of the bits
-split :: Int -> BitList -> (BitList,BitList)
-split n bv@(BL mm ii l) = (a,b)
+split :: Integral a => a -> BitList -> (BitList,BitList)
+split n' bv@(BL mm ii l) = (a,b)
   where
+    n = fromIntegral n' :: Word
     a@(BL m i _n) = take n bv
-    m' = shiftL m (l-n)
-    i' = shiftL i (l-n)
+    m' = shiftL m (fromIntegral $ l-n)
+    i' = shiftL i (fromIntegral $ l-n)
     b = BL (mm-m') (ii-i') (l-n)
 
 -- | Concatenate two 'BitList's.
 concat :: BitList -> BitList -> BitList
 concat (BL ma ia la) (BL mb ib lb) = BL m i l
-  where m = (ma `shiftL` lb) .|. mb
-        i = (ia `shiftL` lb) .|. ib
+  where m = (ma `shiftL` fromIntegral lb) .|. mb
+        i = (ia `shiftL` fromIntegral lb) .|. ib
         l = la + lb
 
 -- | Take a range (exclusive) of a 'BitList'.
