@@ -1,0 +1,33 @@
+
+name: 'surfer-fmt-lint'
+
+on:
+  push:
+    paths:
+      - 'surfer_shockwaves/**'
+  pull_request:
+    paths:
+      - 'surfer_shockwaves/**'
+  workflow_dispatch:
+
+env:
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Check formatting
+        run: |
+          cd $GITHUB_WORKSPACE/surfer_shockwaves
+          cargo fmt --check
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run Clippy
+        run: |
+          cd $GITHUB_WORKSPACE/surfer_shockwaves
+          cargo clippy --all-targets --all-features

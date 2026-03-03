@@ -1,5 +1,3 @@
-
-
 # Making changelog entries
 
 Run `mk-entry.py`.

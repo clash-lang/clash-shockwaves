@@ -1,0 +1,27 @@
+
+name: 'surfer-compile'
+
+on:
+  pull_request:
+    paths:
+      - 'surfer_shockwaves/**'
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Compile extension
+        run: |
+          cd $GITHUB_WORKSPACE/surfer_shockwaves
+          rustup target add wasm32-unknown-unknown
+          ./compile.sh here
+      - name: Upload WASM file
+        uses: actions/upload-artifact@v4
+        with:
+          name: WASM Surfer extension
+          path: surfer_shockwaves/surfer_shockwaves.wasm
+          if-no-files-found: error
