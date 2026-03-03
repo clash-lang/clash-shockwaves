@@ -114,15 +114,16 @@ instance ToJSON BitList where
 instance ToJSONKey BitList where
   toJSONKey = toJSONKeyText (Text.pack . show)
 
-{- | When converting from a string, `0` and `1` are interpreted as bits, and
-`_` is treated as a spacer (is ignored). Any other characters are interpreted
-as unknown bits.
--}
+{- FOURMOLU_DISABLE -}
+-- | When converting from a string, `0` and `1` are interpreted as bits, and
+-- `_` is treated as a spacer (is ignored). Any other characters are interpreted
+-- as unknown bits.
 instance IsString BitList where
   fromString ss = go ss (BL 0 0 0)
-   where
-    go "" bl = bl
-    go ('_' : s) bl = go s bl
-    go ('0' : s) (BL m i l) = go s (BL (2 * m) (2 * i) (l + 1))
-    go ('1' : s) (BL m i l) = go s (BL (2 * m) (2 * i + 1) (l + 1))
-    go (_ : s) (BL m i l) = go s (BL (2 * m + 1) (2 * i) (l + 1))
+    where
+      go ""       bl         = bl
+      go ('_': s) bl         = go s bl
+      go ('0': s) (BL m i l) = go s (BL (2*m  ) (2*i  ) (l+1))
+      go ('1': s) (BL m i l) = go s (BL (2*m  ) (2*i+1) (l+1))
+      go ( _ : s) (BL m i l) = go s (BL (2*m+1) (2*i  ) (l+1))
+{- FOURMOLU_ENABLE -}
