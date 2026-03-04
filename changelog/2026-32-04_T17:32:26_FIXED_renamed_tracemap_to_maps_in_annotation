@@ -1,3 +1,0 @@
-FIXED
-After renaming `traceMap#` to `maps#`, an annotation was left; this has been fixed.
-[!39](https://github.com/clash-lang/clash-shockwaves/issues/39)
