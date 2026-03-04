@@ -203,7 +203,7 @@ addSignal name m@Maps{signalMap,typeMap} =
 maps# :: IORef Maps
 maps# = unsafePerformIO $ newIORef def
 -- See: https://github.com/clash-lang/clash-compiler/pull/2511
-{-# CLASH_OPAQUE traceMap# #-}
+{-# CLASH_OPAQUE maps# #-}
 
 mkTrace
   :: HasCallStack
