@@ -1,0 +1,31 @@
+name: '> haskell-release-docs'
+
+on:
+  push:
+    tags:
+      - 'v**'
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.10.3'
+          cabal-version: '3.14.2.0'
+      - name: Compile library to docs
+        run: |
+          cd $GITHUB_WORKSPACE/shockwaves
+          ghc --version
+          cabal haddock --builddir ./hackage-dist --haddock-for-hackage --enable-doc --minimize-conflict-set
+      - name: Upload Haddock docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: Haddock docs for Hackage
+          path: shockwaves/hackage-dist/shockwaves*.tar.gz
+          if-no-files-found: error

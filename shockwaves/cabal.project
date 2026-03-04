@@ -1,0 +1,10 @@
+packages:
+  shockwaves.cabal
+
+package shockwaves
+  haddock-options: --optghc=-DHADDOCK_ONLY
+
+write-ghc-environment-files: always
+
+-- Eliminates the need for `--enable-tests`, which is needed for HLS.
+tests: true
