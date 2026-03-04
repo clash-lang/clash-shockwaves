@@ -1,0 +1,3 @@
+FIXED
+`Maybe` accidentally used style variable `$maybe_just` instead of `maybe_just`.
+[!38](https://github.com/clash-lang/clash-shockwaves/issues/38)
