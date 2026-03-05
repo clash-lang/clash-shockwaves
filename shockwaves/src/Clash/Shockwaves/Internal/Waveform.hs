@@ -762,7 +762,7 @@ instance (Waveform a) => Waveform (Maybe a) where
     Translator (width @(Maybe a))
       $ TSum
         [ Translator 0 $ TConst $ Translation (Just ("Nothing", "$maybe_nothing", 11)) []
-        , tStyled (WSVar "$maybe_just" (WSInherit 0))
+        , tStyled (WSVar "maybe_just" (WSInherit 0))
             $ Translator (width @a)
             $ TProduct
               { start = "Just "
