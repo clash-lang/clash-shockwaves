@@ -1,0 +1,3 @@
+ADDED
+Added note on the difference in behavior between Haskell and Surfer translations when style variables are involved.
+[!45](https://github.com/clash-lang/clash-shockwaves/issues/45)
