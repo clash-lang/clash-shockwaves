@@ -1,0 +1,3 @@
+FIXED
+Replaced several instances of `unknown` with `undefined`.
+[!47](https://github.com/clash-lang/clash-shockwaves/issues/47)
