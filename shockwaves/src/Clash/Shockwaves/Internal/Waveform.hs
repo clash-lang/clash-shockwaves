@@ -490,7 +490,7 @@ safeTranslation = safeValOr (errorT "undefined")
 
 {- | Given a function that renders a value, and a function that (given this 'Render')
 prodices the subsignals, create a translation.
-If rendering fails, @"unknown"@ is displayed. If creating the subsignals fails, no subsignals are shown.
+If rendering fails, @"undefined"@ is displayed. If creating the subsignals fails, no subsignals are shown.
 -}
 translateWith ::
   (a -> Render) -> (Render -> a -> [(SubSignal, Translation)]) -> a -> Translation
