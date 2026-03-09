@@ -1,0 +1,4 @@
+FIXED
+When (advanced) sum translators have multiple translators that generate subsignals with the same name,
+these are now merged recursively, instead of being added separately.
+[!36](https://github.com/clash-lang/clash-shockwaves/issues/36)
