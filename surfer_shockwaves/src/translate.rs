@@ -81,7 +81,7 @@ fn translate_number(value: &str, format: &NumberFormat, spacer: &NumberSpacer) -
                     } else if c == Some('0') {
                         //pass
                     } else {
-                        return error("unknown");
+                        return error("undefined");
                     }
                 }
 
@@ -97,7 +97,7 @@ fn translate_number(value: &str, format: &NumberFormat, spacer: &NumberSpacer) -
                 } else {
                     match BigUint::parse_bytes(value.as_bytes(), 2) {
                         Some(big) => (apply_spacer(big.to_string()), WaveStyle::Default, ATOMIC),
-                        None => return error("unknown"),
+                        None => return error("undefined"),
                     }
                 }
             }
@@ -271,7 +271,7 @@ impl State {
         }
         translation.prop_style_inherit();
 
-        //fill out missing unknown fields
+        //fill out missing fields
         let structure = self
             .cache
             .structures
@@ -432,7 +432,7 @@ impl State {
                         let t = &translators[variant];
                         self.translate_with(t, &value[bits..])
                     }
-                    Err(_) => error("unknown"),
+                    Err(_) => error("undefined"),
                 }
             }
             TranslatorVariant::AdvancedSum {
@@ -448,7 +448,7 @@ impl State {
                     }
                     self.translate_with(default_translator, value)
                 }
-                Err(_) => error("unknown"),
+                Err(_) => error("undefined"),
             },
             /* Manipulating translators */
             TranslatorVariant::Duplicate(n, t) => {
