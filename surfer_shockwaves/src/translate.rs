@@ -39,7 +39,13 @@ fn error(msg: &str) -> Translation {
 }
 
 /// Translate binary data as an integer.
-fn translate_number(value: &str, format: &NumberFormat, spacer: &NumberSpacer) -> Translation {
+fn translate_number(
+    value: &str,
+    format: &NumberFormat,
+    spacer: &NumberSpacer,
+    prefix: &String,
+    warn: bool,
+) -> Translation {
     let apply_spacer = |v: String| match spacer {
         None => v,
         Some((0, _)) => v,
@@ -89,20 +95,28 @@ fn translate_number(value: &str, format: &NumberFormat, spacer: &NumberSpacer) -
                 let bigstr = big.to_string();
                 let prec = if bigstr.starts_with('-') { 0 } else { ATOMIC };
 
-                (apply_spacer(bigstr), WaveStyle::Default, prec)
+                (
+                    prefix.to_owned() + &apply_spacer(bigstr),
+                    WaveStyle::Default,
+                    prec,
+                )
             }
             NumberFormat::Uns => {
                 if value.is_empty() {
                     ("0".to_string(), WaveStyle::Default, ATOMIC)
                 } else {
                     match BigUint::parse_bytes(value.as_bytes(), 2) {
-                        Some(big) => (apply_spacer(big.to_string()), WaveStyle::Default, ATOMIC),
+                        Some(big) => (
+                            prefix.to_owned() + &apply_spacer(big.to_string()),
+                            WaveStyle::Default,
+                            ATOMIC,
+                        ),
                         None => return error("unknown"),
                     }
                 }
             }
             NumberFormat::Bin => (
-                "0b".to_owned() + &apply_spacer(value.to_string()),
+                prefix.to_owned() + &apply_spacer(value.to_string()),
                 if value.contains('x') {
                     WaveStyle::Error
                 } else {
@@ -111,9 +125,9 @@ fn translate_number(value: &str, format: &NumberFormat, spacer: &NumberSpacer) -
                 ATOMIC,
             ),
             NumberFormat::Hex | NumberFormat::Oct => {
-                let (chunksize, prefix) = match format {
-                    NumberFormat::Oct => (3, "0o"),
-                    NumberFormat::Hex => (4, "0X"),
+                let chunksize = match format {
+                    NumberFormat::Oct => 3,
+                    NumberFormat::Hex => 4,
                     _ => unreachable!(),
                 };
                 let mut blocks = vec![];
@@ -132,7 +146,11 @@ fn translate_number(value: &str, format: &NumberFormat, spacer: &NumberSpacer) -
 
                 let val = prefix.to_owned() + &apply_spacer(blocks.concat());
                 let style = if val.contains("x") {
-                    WaveStyle::Error
+                    if warn {
+                        WaveStyle::Warn
+                    } else {
+                        WaveStyle::Error
+                    }
                 } else {
                     WaveStyle::Default
                 };
@@ -300,9 +318,14 @@ impl State {
             /* Direct translators */
             TranslatorVariant::Ref(ty) => self.translate_with(self.data.get_translator(ty), value),
             TranslatorVariant::Const(t) => t.clone(),
-            TranslatorVariant::Number { format, spacer } => {
+            TranslatorVariant::Number {
+                format,
+                spacer,
+                prefix,
+                warn,
+            } => {
                 let spacer = self.config.get_spacer_override(format).unwrap_or(spacer);
-                translate_number(value, format, spacer)
+                translate_number(value, format, spacer, prefix, *warn)
             }
             TranslatorVariant::Lut(n, _) => match self.data.luts.get(n) {
                 Some(lut) => match lut.get(value) {
