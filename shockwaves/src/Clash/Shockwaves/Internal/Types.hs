@@ -295,7 +295,11 @@ data TranslatorVariant
       { format :: NumberFormat
       -- ^ Format used to display data.
       , spacer :: NumberSpacer
-      -- ^ Optional spacer to improve readability
+      -- ^ Optional spacer to improve readability.
+      , prefix :: String
+      -- ^ String to prefix the result with.
+      , warn :: Bool
+      -- ^ Whether to use WSWarn rather than WSError in case of undefined bits.
       }
   | -- | A constant translation value. The binary value provided is completely ignored.
     TConst Translation
@@ -392,12 +396,14 @@ instance ToJSON Translator where
           ]
       TConst t -> object ["C" .= toJSON t]
       TLut lut TypeRef{structureRef} -> object ["L" .= [toJSON lut, toJSON structureRef]]
-      TNumber{format, spacer} ->
+      TNumber{format, spacer, prefix, warn} ->
         object
           [ "N"
               .= object
                 [ "f" .= format
                 , "s" .= spacer
+                , "p" .= prefix
+                , "w" .= warn
                 ]
           ]
       TArray{sub, len, start, sep, stop, preci, preco} ->

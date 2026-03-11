@@ -189,19 +189,19 @@ translateBinT trans@(Translator width variant) bin''@(BL _ _ blLength)
   , bin <- BL.take width bin'' = case variant of
       TRef _ TypeRef{translateBinRef} -> translateBinRef bin
       TLut _ TypeRef{translateBinRef} -> translateBinRef bin
-      TNumber{format, spacer} -> Translation (if isJust render then render else Just ("undefined", WSError, 11)) []
+      TNumber{format, spacer, prefix, warn} -> Translation (if isJust render then render else Just ("undefined", WSError, 11)) []
        where
         bin' = show bin
         render :: Render
         render =
-          (\((pref, v), s, p) -> (pref <> applySpacer spacer v, s, p)) <$> case format of
-            NFBin -> Just (("0b", bin'), undefStyle, 11)
-            NFOct -> Just (("0o", hexDigit <$> chunksOf 3 (extendBits 3)), undefStyle, 11)
-            NFHex -> Just (("0X", hexDigit <$> chunksOf 4 (extendBits 4)), undefStyle, 11)
-            NFUns -> (\i -> (("", show i), WSDefault, 11)) <$> decodeUns 0 bin'
-            NFSig -> (\i -> (("", show i), WSDefault, if i >= 0 then 11 else 0)) <$> decodeSig bin'
+          (\(v, s, p) -> (prefix <> applySpacer spacer v, s, p)) <$> case format of
+            NFBin -> Just (bin', undefStyle, 11)
+            NFOct -> Just (hexDigit <$> chunksOf 3 (extendBits 3), undefStyle, 11)
+            NFHex -> Just (hexDigit <$> chunksOf 4 (extendBits 4), undefStyle, 11)
+            NFUns -> (\i -> (show i, WSDefault, 11)) <$> decodeUns 0 bin'
+            NFSig -> (\i -> (show i, WSDefault, if i >= 0 then 11 else 0)) <$> decodeSig bin'
 
-        undefStyle = if 'x' `elem` bin' then WSError else WSDefault
+        undefStyle = if 'x' `elem` bin' then (if warn then WSWarn else WSError) else WSDefault
         extendBits k = L.replicate (k - 1 - ((width + k - 1) `rem` k)) '0' <> bin'
 
         hexDigit :: String -> Char
