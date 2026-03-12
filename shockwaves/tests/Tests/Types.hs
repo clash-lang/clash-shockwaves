@@ -70,7 +70,7 @@ newtype Pointer a = Pointer (Unsigned a) deriving (Generic,BitPack,NFDataX,Typea
 instance KnownNat a => Waveform (Pointer a) where
   translator = Translator (width @(Unsigned a)) $ TAdvancedSum
     { index = (0,width @(Unsigned a))
-    , defTrans = Translator (width @(Unsigned a)) $ TNumber NFHex (Just (2,"_"))
+    , defTrans = Translator (width @(Unsigned a)) $ TNumber NFHex (Just (2,"_")) "0X" False
     , rangeTrans = [((0,1),tConst $ Just ("NULL",WSWarn,11))]
     }
 
@@ -82,11 +82,11 @@ instance Waveform a => Waveform (NumRep a) where
       L.map ((0,width @a),)
         ( tRef (Proxy @a) :
           L.map (Translator (width @a))
-            [ TNumber NFBin (Just (4,"_"))
-            , TNumber NFOct (Just (4,"_"))
-            , TNumber NFHex (Just (2,"_"))
-            , TNumber NFUns (Just (3,"_"))
-            , TNumber NFSig (Just (3,"_"))
+            [ TNumber NFBin (Just (4,"_")) "0b" False
+            , TNumber NFOct (Just (4,"_")) "0o" False
+            , TNumber NFHex (Just (2,"_")) "0X" False
+            , TNumber NFUns (Just (3,"_")) "" False
+            , TNumber NFSig (Just (3,"_")) "" False
             ])
       <> [((width @a-1,width @a),tRef $ Proxy @Bool)]
     , hierarchy = [("bin",1),("oct",2),("hex",3),("unsigned",4),("signed",5),("odd",6)]
@@ -100,5 +100,5 @@ newtype LittleEndian = LittleEndian (Unsigned 24)
 instance Waveform LittleEndian where
   translator = Translator 24 $ TChangeBits
     { bits = BPConcat [BPLit "x1110",BPSlice (16,24), BPSlice (8,16),BPSlice (0,8)]
-    , sub = Translator 29 $ TNumber NFHex (Just (2,"_"))
+    , sub = Translator 29 $ TNumber NFHex (Just (2,"_")) "0X" False
     }
