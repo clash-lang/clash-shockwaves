@@ -151,6 +151,12 @@ Like `tDup`, `tStyled` is the easiest way to change the style of a translator.
 translator' = tStyled "red" translator
 ```
 
+> **Note:** when opened in Surfer, style variables are replaced _before_ any translations
+> take place. This means that `TStyled` will happily replace any style variable that
+> resolves to `WSDefault`. However, when translating inside Haskell, the style variables
+> are not resolved at all, and as such, will not be replaced either. This difference in
+> behavior might cause unexpected behaviour when using LUTs under very specific circumstances.
+
 #### Manipulating bits
 
 Sometimes, the binary representation of a type does not allow for the translation you want.

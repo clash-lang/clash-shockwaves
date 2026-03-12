@@ -11,6 +11,9 @@ Shockwaves is a system for typed waveforms in Clash.
 For more options, see "Clash.Shockwaves.Waveform", "Clash.Shockwaves.Style",
 "Clash.Shockwaves.LUT" and "Clash.Shockwaves.Trace".
 
+For the HOWTO guides on using Shockwaves, check out
+[the documentation in the GitHub repository](https://github.com/clash-lang/clash-shockwaves/blob/main/docs/howto/README.md).
+
 Note: this exports the "Clash.Shockwaves.Trace" module, which creates name space
 collisions with "Clash.Signal.Trace". Import qualified or selectively.
 -}
