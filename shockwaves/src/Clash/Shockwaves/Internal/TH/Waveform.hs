@@ -23,7 +23,7 @@ deriveWaveformTuples minSize maxSize = do
   return $ flip map [minSize .. maxSize] $ \tupleNum ->
     let names = take tupleNum allNames
         vs = map VarT names
-        tuple = foldl' AppT (TupleT tupleNum) vs
+        tuple = foldl AppT (TupleT tupleNum) vs
 
         context = map (waveform `AppT`) vs
         instTy = AppT waveform tuple
