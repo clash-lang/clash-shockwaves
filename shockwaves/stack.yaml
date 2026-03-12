@@ -1,4 +1,6 @@
-resolver: lts-23.28
+resolver:
+  lts-24.33
+  # lts-23.28
 
 extra-deps:
 #- clash-ghc-1.8.2@sha256:a5e5fe902fbc02f2fc825e13855b9e57bbc782928bc1820c29d3faabaa8457bb,9802
