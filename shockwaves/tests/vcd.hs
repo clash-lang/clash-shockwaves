@@ -45,6 +45,7 @@ tests =
   , test "Pointer16" $ values $ Pointer @16 <$> [0,1,2,3,undef]
   , test "NumRepU3" $ values $ NumRep <$> [0,1,3,4,7,undef :: Unsigned 3]
   , test "LittleEndian" $ values $ LittleEndian <$> [0,1,16,256,65536]
+  , test "SumStruct" $ values $ [SSA $ Just True,SSB,SSC $ Left False, SSD]
   ]
 {- FOURMOLU_ENABLE -}
 
