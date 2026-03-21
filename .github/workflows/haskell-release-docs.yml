@@ -29,3 +29,9 @@ jobs:
           name: Haddock docs for Hackage
           path: shockwaves/hackage-dist/shockwaves*.tar.gz
           if-no-files-found: error
+      - name: Upload Haddock docs to release
+        uses: Roang-zero1/github-upload-release-artifacts-action@v2
+        with:
+          args: "shockwaves/hackage-dist/shockwaves*.tar.gz"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
