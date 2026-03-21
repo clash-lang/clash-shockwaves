@@ -315,6 +315,33 @@ data BitPart
     BPSlice Slice BitPart
   | -- | Pass the binary data onto multiple 'BitPart's, and concatenate their results.
     BPConcat [BitPart]
+  | -- | Return `1` if there are undefined bits in the binary.
+    BPHasUndefined BitPart
+  | -- | Return bits in reverse order.
+    BPReverse BitPart
+  | -- | Invert 0 and 1.
+    BPInvert BitPart
+  | -- | Bitwise and.
+    BPAnd [BitPart]
+  | -- | Bitwise or.
+    BPOr [BitPart]
+  | -- | Bitwise xor.
+    BPXor [BitPart]
+  | {- | Turn a binary value into a one-hot signal based on the provided range.
+    This essentially loops over all values in the range, creating a 1 iff the input
+    BitPart's result is equal to that value.
+    I.e. BPOneHot (0,3) "10" results in "001".
+    -}
+    BPOneHot ISlice BitPart
+  | {- | Turn a binary value into a n-hot signal based on the provided range.
+    This essentially loops over all values in the range, creating a 1 iff the input
+    BitPart's result is less than or equal to that value.
+    -}
+    BPNHot ISlice BitPart
+  | {- | Switch bitparts based on the first bit in the condition bitpart:
+    `BPIf (true) (false) (undef) (cond)`
+    -}
+    BPIf BitPart BitPart BitPart BitPart
   deriving (Show)
 
 -- | Parts of the value of 'TAdvancedProduct'.
@@ -358,8 +385,17 @@ instance IsString BitPart where
 instance ToJSON BitPart where
   toJSON (BPConcat bps) = object ["C" .= bps]
   toJSON (BPLit bl) = object ["L" .= show bl]
-  toJSON (BPSlice s bp) = object ["S" .= [toJSON s, toJSON bp]]
+  toJSON (BPSlice s a) = object ["S" .= [toJSON s, toJSON a]]
   toJSON BPIn = "I"
+  toJSON (BPHasUndefined a) = object ["X" .= a]
+  toJSON (BPReverse a) = object ["R" .= a]
+  toJSON (BPInvert a) = object ["~" .= a]
+  toJSON (BPAnd as) = object ["&" .= as]
+  toJSON (BPOr as) = object ["|" .= as]
+  toJSON (BPXor as) = object ["^" .= as]
+  toJSON (BPOneHot s i) = object ["h" .= [toJSON s, toJSON i]]
+  toJSON (BPNHot s i) = object ["H" .= [toJSON s, toJSON i]]
+  toJSON (BPIf t f x c) = object ["?" .= [t, f, x, c]]
 
 instance ToJSON ValuePart where
   toJSON (VPLit s) = object ["L" .= s]

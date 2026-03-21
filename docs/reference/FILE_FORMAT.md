@@ -115,3 +115,12 @@ There are many translator variants available:
     - `{"L":<binary>}`: a literal binary string
     - `{"S":[[<from>,<to>],<bitpart>]}`: take the (half open) slice `(from,to)` from the output of `<bitpart>`
     - `{"C":[<bitpart>,...]}`: concatenate the output of the `<bitpart>`s
+    - `{"X":<bitpart>}`: return whether the other bitpart's result has undefineds
+    - `{"R":<bitpart>}`: reverse
+    - `{"~":<bitpart>}`: binary not
+    - `{"&":[<bitpart>,...}`: binary and
+    - `{"|":[<bitpart>,...]}`: binary or
+    - `{"^":[<bitpart>,...]}`: binary xor
+    - `{"h":[<slice>,<bitpart>]}`: one-hot decoding
+    - `{"h":[<slice>,<bitpart>]}`: n-hot decoding
+    - `{"?":[t,f,x,c]}`: 1-bit conditional

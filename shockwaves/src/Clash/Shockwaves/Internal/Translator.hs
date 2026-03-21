@@ -73,10 +73,26 @@ filterSignals = L.filter ((/= "") . fst)
 {- FOURMOLU_DISABLE -}
 -- | Change bits using 'BitPart'.
 changeBits :: BitPart -> BitList -> BitList
-changeBits (BPConcat bps) bin = L.foldl (<>) "" $ L.map (`changeBits` bin) bps
-changeBits (BPLit bl)    _bin = bl
-changeBits (BPSlice s bp) bin = BL.slice s $ changeBits bp bin
-changeBits BPIn           bin = bin
+changeBits BPIn                bin = bin
+changeBits (BPLit bl)         _bin = bl
+changeBits (BPSlice s bp)      bin = BL.slice s $ changeBits bp bin
+changeBits (BPConcat bps)      bin = L.foldl (<>) "" $ L.map (`changeBits` bin) bps
+changeBits (BPHasUndefined bp) bin = hasUndefined $ changeBits bp bin
+changeBits (BPReverse bp)      bin = fromString $ L.reverse $ show $ changeBits bp bin
+changeBits (BPInvert bp)       bin = complement $ changeBits bp bin
+changeBits (BPAnd bps)         bin = foldl1 (.&.) $ map (`changeBits` bin) bps
+changeBits (BPOr bps)          bin = foldl1 (.|.) $ map (`changeBits` bin) bps
+changeBits (BPXor bps)         bin = foldl1 xor $ map (`changeBits` bin) bps
+changeBits (BPOneHot (f,t) bp) bin = case toInteger $ bitChange a bin of
+  Just x -> fromString $ map (== x) [f..t-1]
+  Nothing -> fromString $ L.replicate (t-f) 'x'
+changeBits (BPNHot (f,t) a)   bin = let ...
+                                    in fromString $ map (\) $ show $ changeBits a bin
+changeBits (BPIf t f x c)     bin = let changeBits c bin
+                                    in case ... of
+                                       '1' -> changeBits t bin
+                                       '0' -> changeBits f bin
+                                        _  -> changeBits c bin
 {- FOURMOLU_ENABLE -}
 
 {- FOURMOLU_DISABLE -}

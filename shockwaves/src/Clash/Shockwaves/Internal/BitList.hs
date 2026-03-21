@@ -105,6 +105,27 @@ toInteger :: BitList -> Maybe Integer
 toInteger (BL m i _) | m == 0 = Just $ fromIntegral i
 toInteger _ = Nothing
 
+hasUndefined :: BitList -> Bool
+hasUndefined (BL m _ _) = m /= 0
+
+instance Bits BitList where
+  (.&.) (BL ma ia la) (BL mb ib lb) = BL (ma .|. mb) (ia .&. ib) (max la lb)
+  (.|.) (BL ma ia la) (BL mb ib lb) = BL m ((ia .|. ib .|. m) - m) (max la lb)
+   where
+    m = ma .|. mb
+  xor (BL ma ia la) (BL mb ib lb) = BL m (((ia `xor` ib) .|. m) - m) (max la lb)
+   where
+    m = ma .|. mb
+  complement (BL m i l) = BL m (((((1 `shiftL` l) - 1) - i) .|. m) - m) l
+  shift (BL m i l) a = BL (shift m a) (shift i a) l
+  rotate (BL m i l) a = BL (rotate m a) (rotate i a) l
+  bitSize (BL _ _ l) = l
+  bitSizeMaybe (BL _ _ l) = Just l
+  isSigned _ = False
+  testBit (BL _ i _) = testBit i
+  bit n = BL 0 (bit n) (n + 1)
+  popCount (BL _ i _) = popCount i
+
 instance Semigroup BitList where
   (<>) = concat
 
