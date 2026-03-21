@@ -25,3 +25,9 @@ jobs:
           name: WASM Surfer extension
           path: surfer_shockwaves/surfer_shockwaves.wasm
           if-no-files-found: error
+      - name: Upload WASM file to release
+        uses: Roang-zero1/github-upload-release-artifacts-action@v2
+        with:
+          args: "surfer_shockwaves/surfer_shockwaves.wasm"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
