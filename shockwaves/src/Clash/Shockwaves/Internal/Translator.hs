@@ -272,7 +272,7 @@ the structure of a constant translation.
 structureT :: Translator -> Structure
 structureT (Translator _ t) = case t of
   TRef _ TypeRef{structureRef} -> structureRef
-  TSum ts -> Structure subs
+  TSum ts -> Structure $ mergeDuplicateSubsignals subs
    where
     subs = L.concatMap (getS . structureT) ts
     getS (Structure s) = s
@@ -295,6 +295,25 @@ structureT (Translator _ t) = case t of
   TStyled _ t' -> structureT t'
   TDuplicate n t' -> Structure [(n, structureT t')]
   TChangeBits{sub} -> structureT sub
+
+-- | Merge duplicate subsignals in a list of subsignal structures.
+mergeDuplicateSubsignals :: [(SubSignal, Structure)] -> [(SubSignal, Structure)]
+mergeDuplicateSubsignals = L.reverse . L.foldr addSignal [] . L.reverse
+ where
+  addSignal ::
+    (SubSignal, Structure) -> [(SubSignal, Structure)] -> [(SubSignal, Structure)]
+  addSignal sig signals = case L.mapAccumL mergeOrPass (Just sig) signals of
+    (Nothing, signals') -> signals'
+    (Just sig', signals') -> sig' : signals'
+   where
+    mergeOrPass ::
+      Maybe (SubSignal, Structure) ->
+      (SubSignal, Structure) ->
+      (Maybe (SubSignal, Structure), (SubSignal, Structure))
+    mergeOrPass (Just (name, Structure s)) (name', Structure s')
+      | name == name' =
+          (Nothing, (name, Structure $ mergeDuplicateSubsignals (s' <> s)))
+    mergeOrPass newsig oldsig = (newsig, oldsig)
 
 -- | Construct a 't:Structure' from a 't:Translation'.
 fromTranslation :: Translation -> Structure

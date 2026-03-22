@@ -102,3 +102,31 @@ instance Waveform LittleEndian where
     { bits = BPConcat [BPLit "x1110",BPSlice (16,24), BPSlice (8,16),BPSlice (0,8)]
     , sub = Translator 29 $ TNumber NFHex (Just (2,"_"))
     }
+
+
+data SumStruct = SSA{sub::Maybe Bool} | SSB | SSC{sub2::Either Bool Bool} | SSD
+  deriving (Generic,BitPack,Typeable,NFDataX,ShowX)
+
+instance Waveform SumStruct where
+  translator = Translator 4 $ TSum
+    [ Translator 2 $ TProduct
+        { start = "SSA "
+        , sep = ""
+        , stop = ""
+        , preci = 10
+        , preco = 10
+        , labels = []
+        , subs = [("sub",tRef (Proxy @(Maybe Bool)))]
+        }
+    , tDup "B" $ tConst $ Just ("SSB",WSDefault,11)
+    , Translator 2 $ TProduct
+        { start = "SSC "
+        , sep = ""
+        , stop = ""
+        , preci = 10
+        , preco = 10
+        , labels = []
+        , subs = [("sub",tRef (Proxy @(Either Bool Bool)))]
+        }
+    , tDup "D" $ tConst $ Just ("SSD",WSDefault,11)
+    ]
