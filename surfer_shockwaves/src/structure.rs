@@ -16,6 +16,19 @@ impl Structure {
                 .collect(),
         )
     }
+
+    /// Merge with a different structure.
+    fn merge_with(&mut self, other: Structure) {
+        'outer: for (name, s) in other.0 {
+            for (oldname, olds) in &mut self.0 {
+                if oldname == &name {
+                    olds.merge_with(s);
+                    continue 'outer;
+                }
+            }
+            self.0.push((name, s));
+        }
+    }
 }
 
 impl Data {
@@ -58,23 +71,22 @@ impl Data {
             ),
             /* Sum translators */
             TranslatorVariant::Sum(translators) => {
-                let ts = translators
-                    .iter()
-                    .flat_map(|t| self.trans_structure(t).0)
-                    .collect();
-                Structure(ts)
+                let mut s = Structure(vec![]);
+                for t in translators {
+                    s.merge_with(self.trans_structure(t));
+                }
+                s
             }
             TranslatorVariant::AdvancedSum {
                 default_translator,
                 range_translators,
                 ..
             } => {
-                let mut ts: Vec<_> = range_translators
-                    .iter()
-                    .flat_map(|(_, t)| self.trans_structure(t).0)
-                    .collect();
-                ts.extend(self.trans_structure(default_translator).0);
-                Structure(ts)
+                let mut s = self.trans_structure(default_translator);
+                for (_, t) in range_translators {
+                    s.merge_with(self.trans_structure(t));
+                }
+                s
             }
             /* Manipulating translators */
             TranslatorVariant::Styled(_, translator) => self.trans_structure(translator),

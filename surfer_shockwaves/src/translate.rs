@@ -175,17 +175,42 @@ impl ValuePart {
     }
 }
 
+/// A type that can either be `String` or `&str`
+enum StringLike<'a> {
+    Full(String),
+    Slice(&'a str),
+}
+impl<'a> AsRef<str> for StringLike<'a> {
+    fn as_ref(&self) -> &str {
+        match self {
+            StringLike::Full(s) => s,
+            StringLike::Slice(s) => s,
+        }
+    }
+}
+
 impl BitPart {
     /// Manipulate bits according to the `BitPart` structure.
-    fn from(&self, bits: &str) -> String {
+    fn from<'a>(&'a self, bits: &'a str) -> StringLike<'a> {
+        // TODO: use Either<String,&str> for optimization
         match self {
-            BitPart::Concat(bps) => bps
-                .iter()
-                .map(|bp| bp.from(bits))
-                .collect::<Vec<_>>()
-                .concat(),
-            BitPart::Lit(s) => s.to_string(),
-            BitPart::Slice((a, b)) => bits[*a..*b].to_string(),
+            BitPart::In => StringLike::Slice(bits),
+            BitPart::Concat(bps) => {
+                let parts = bps.iter().map(|bp| bp.from(bits)).collect::<Vec<_>>();
+                StringLike::Full(
+                    parts
+                        .iter()
+                        .map(|p| p.as_ref())
+                        .collect::<Vec<_>>()
+                        .concat(),
+                )
+            }
+
+            BitPart::Lit(s) => StringLike::Slice(s),
+            BitPart::Slice((a, b), bp) => match bp.from(bits) {
+                StringLike::Full(s) => StringLike::Full(s[*a..*b].to_string()),
+                StringLike::Slice(s) => StringLike::Slice(&s[*a..*b]),
+            },
         }
     }
 }
@@ -494,7 +519,7 @@ impl State {
                 }
             }
             TranslatorVariant::ChangeBits { sub, bits } => {
-                self.translate_with(sub, &bits.from(value))
+                self.translate_with(sub, bits.from(value).as_ref())
             }
         }
     }
