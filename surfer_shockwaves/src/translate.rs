@@ -118,7 +118,11 @@ fn translate_number(
             NumberFormat::Bin => (
                 prefix.to_owned() + &apply_spacer(value.to_string()),
                 if value.contains('x') {
-                    WaveStyle::Error
+                    if(warn) {
+                        WaveStyle::Warn
+                    } else {
+                        WaveStyle::Error
+                    }
                 } else {
                     WaveStyle::Default
                 },
