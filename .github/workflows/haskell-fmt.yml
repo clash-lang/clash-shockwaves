@@ -5,9 +5,11 @@ on:
   push:
     paths:
       - 'shockwaves/src/**'
+      - 'shockwaves/tests/**'
   pull_request:
     paths:
       - 'shockwaves/src/**'
+      - 'shockwaves/tests/**'
   workflow_dispatch:
 
 jobs:
@@ -25,6 +27,7 @@ jobs:
           # Only check the format of .hs in the src/ directory
           pattern: |
             src/**/*.hs
+            tests/**/*.hs
             
           # Change to the ./my-haskell-code/ directory before running this action.
           working-directory: "./shockwaves"

@@ -4,8 +4,7 @@ name: 'haskell-test'
 on:
   pull_request:
     paths:
-      - 'shockwaves/src/**'
-      - 'shockwaves/tests/**'
+      - 'shockwaves/**'
   workflow_dispatch:
 
 jobs:
