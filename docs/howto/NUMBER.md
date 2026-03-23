@@ -40,5 +40,5 @@ Some default spacers are defined. `NoSpacer` is the same as `'Nothing`. `SpacerD
 places a `_` every 3 digits; `SpacerBin`, `SpacerOct` and `SpacerHex` all place a `_`
 every 4 digits.
 
-**Note:** The spacer configuration can be overwritten globally per number format!
-Check [TODO:link] for more.
+**Note:** The spacer configuration can be overridden globally per number format!
+Check [the configuration guide](CONFIG.md) for more.

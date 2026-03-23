@@ -47,20 +47,20 @@ propagate_errors = false
 
 You may run into a situation where the default number spacers do not suit your needs,
 particularly when using a predefined numerical type.
-In this case, you can overwrite the spacers used for numbers. These can be overwritten
+In this case, you can override the spacers used for numbers. This can be done
 per number format.
 
 
 For example, if you want unsigned numbers to be separated by `'` insted of `_`, write:
 ```
-overwrite_uns_spacer = [3,"'"]
+override_uns_spacer = [3,"'"]
 ```
 
 Alternatively, to remove the spacers alltogether, set the number of digits between spacers
 to `0`:
 
 ```
-overwrite_uns_spacer = [0,""]
+override_uns_spacer = [0,""]
 ```
 
 Keep in mind that data types using LUTs are not translated by Surfer, and as such

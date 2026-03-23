@@ -36,7 +36,14 @@ If you have a constant value (such as a unit type or a constructor without field
 `TConst`. This is simply a constant translation value.
 
 ```hs
-Translator 0 $ TConst $ Translation (Just (TODO,TODO,TODO)) [("sub",Translation (Just (TODO,TODO,TODO)) [])]
+Translator 0 $ TConst $ Translation (Just ("<X>",WSWarn,11))
+  [("sub", Translation (Just ("No information is stored in the VCD",WSDefault,11)) [])]
+```
+
+If you just need a single render value, use `tConst` instead:
+
+```hs
+tConst $ Just ("<X>",WSWarn,11)
 ```
 
 #### Sum types
