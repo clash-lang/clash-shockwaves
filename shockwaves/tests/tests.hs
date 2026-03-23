@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE CPP #-}
 
 import Prelude
@@ -49,7 +50,7 @@ isL x = case x of
   Right () -> assertFailure "passed, but should have failed"
 
 tests :: TestTree
-tests = testGroup "Tests" [testStructureTest,structureTest,renderTest,translationTest,lutTest]
+tests = testGroup "Tests" [testStructureTest,structureTest,rawStructureTest,renderTest,translationTest,lutTest]
 
 undef :: a
 undef = Clash.Prelude.undefined
@@ -129,17 +130,31 @@ structureTest = testGroup "TRANSLATION MATCHES TRANSLATOR STRUCTURE"
   , testGroup "Maybe" $ testAll testS [Nothing, Just True, undef]
   , testGroup "Vec 2" $ testAll testS [True :> False :> Nil, undef :> undef :> Nil, undef]
   , testGroup "Vec 0" $ testAll testS [Nil @Bool, undef]
-  , testGroup "Pointer" $ testAll testS [Pointer @32 0, Pointer 1, Pointer 2, Pointer undef, undef]
-  , testGroup "NumRep" $ testAll testS $ NumRep <$> [0,1,3,4,7 :: Unsigned 3]
+  , testGroup "Pointer"   $ testAll testS [Pointer @32 0, Pointer 1, Pointer 2, Pointer undef, undef]
+  , testGroup "NumRep"    $ testAll testS $ NumRep <$> [0,1,3,4,7 :: Unsigned 3]
+  , testGroup "SumStruct" $ testAll testS $ [SSA $ Just True, SSB, SSC $ Left False, SSD]
   ]
 {- FOURMOLU_ENABLE -}
 
+--
 
+struct :: forall a. Waveform a => (Structure -> Int) -> Assertion
+struct p = pat p $ structure @a
 
+pattern Q :: [(SubSignal, Structure)] -> Structure
+pattern Q l <- Structure l
 
+{-
 
+Test whether the structure is as expected
 
+-}
+rawStructureTest :: TestTree
+rawStructureTest = testGroup "STRUCTURE AS EXPECTED"
+  [ testCase "SumStruct" $ struct @SumStruct (\(Q ["sub" :@ Q ["Just.0" :@ _, "Left" :@ _, "Right" :@ _],"B" :@ Q [], "D" :@ Q []]) -> 0)
+  ]
 
+--
 
 renders :: (Waveform a, ShowX a) => [a] -> [String] -> [TestTree]
 renders xs = L.zipWith go rs'
@@ -217,6 +232,7 @@ data T = T (String,WaveStyle) [(String,T)] deriving (Show)
 pattern (:@) :: a -> b -> (a,b)
 pattern (:@) x y <- (x,y)
 
+
 toT :: Translation -> T
 toT (Translation ren subs) = T d $ L.map (second toT) subs
   where d = case ren of
@@ -224,7 +240,7 @@ toT (Translation ren subs) = T d $ L.map (second toT) subs
           Nothing -> ("",WSNormal)
 
 
-pat :: (T -> Int) -> T -> Assertion
+pat :: Show t => (t -> Int) -> t -> Assertion
 pat f v = case safeVal (f v) of
   Right _ -> return ()
   Left e -> assertFailure $ show v <> ": " <> fromMaybe "error" e
