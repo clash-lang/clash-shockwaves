@@ -307,12 +307,14 @@ Each constructor modifies bits in a certain way.
 More may be added later.
 -}
 data BitPart
-  = -- | Pass the binary data onto multiple 'BitPart's, and concatenate their results.
-    BPConcat [BitPart]
+  = -- | Return the input binary.
+    BPIn
   | -- | Return the 'BitList', ignoring the input.
     BPLit BitList
   | -- | Return a slice of the input. **Important**: slice indices start to the left, i.e. with the MSB!
-    BPSlice Slice
+    BPSlice Slice BitPart
+  | -- | Pass the binary data onto multiple 'BitPart's, and concatenate their results.
+    BPConcat [BitPart]
   deriving (Show)
 
 -- | Parts of the value of 'TAdvancedProduct'.
@@ -354,9 +356,10 @@ instance IsString BitPart where
   fromString s = BPLit $ fromString s
 
 instance ToJSON BitPart where
-  toJSON (BPConcat bp) = object ["C" .= bp]
+  toJSON (BPConcat bps) = object ["C" .= bps]
   toJSON (BPLit bl) = object ["L" .= show bl]
-  toJSON (BPSlice s) = object ["S" .= s]
+  toJSON (BPSlice s bp) = object ["S" .= [toJSON s, toJSON bp]]
+  toJSON BPIn = "I"
 
 instance ToJSON ValuePart where
   toJSON (VPLit s) = object ["L" .= s]

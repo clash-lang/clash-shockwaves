@@ -1,0 +1,4 @@
+CHANGED
+Changed the BitPart Slice option to slice from a different BitPart's output instead of the input,
+and added In to refer to the input.
+Part of [!54](https://github.com/clash-lang/clash-shockwaves/issues/54)

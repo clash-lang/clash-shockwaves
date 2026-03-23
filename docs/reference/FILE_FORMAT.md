@@ -105,6 +105,13 @@ There are many translator variants available:
   - `"H"`: hexadecimal
   - `"O"`: octal
   - `"B"`: binary
-- `{"D":["<sub>",<translator>]}`: put the output of `<translator>` in subsignal `<sub>` and copy its value.
+- `{"D":["<sub>",<translator>]}`: put the output of `<translator>` in subsignal `<sub>` and copy its value
 - `{"X":[<style>,<translator>]}`: apply a style to the output of `<translator>`.
 - `{"C":<translation>}`: a constant translation value.
+- `{"B":{...}}`: translate modified binary
+  - `"t":<translator>`: translator to translate with
+  - `"b":<bitpart>`: the constructor for the binary value. `<bitpart>` can be:
+    - `"I"`: the input binary
+    - `{"L":<binary>}`: a literal binary string
+    - `{"S":[[<from>,<to>],<bitpart>]}`: take the (half open) slice `(from,to)` from the output of `<bitpart>`
+    - `{"C":[<bitpart>,...]}`: concatenate the output of the `<bitpart>`s

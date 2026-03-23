@@ -75,7 +75,8 @@ filterSignals = L.filter ((/= "") . fst)
 changeBits :: BitPart -> BitList -> BitList
 changeBits (BPConcat bps) bin = L.foldl (<>) "" $ L.map (`changeBits` bin) bps
 changeBits (BPLit bl)    _bin = bl
-changeBits (BPSlice s)    bin = BL.slice s bin
+changeBits (BPSlice s bp) bin = BL.slice s $ changeBits bp bin
+changeBits BPIn           bin = bin
 {- FOURMOLU_ENABLE -}
 
 {- FOURMOLU_DISABLE -}

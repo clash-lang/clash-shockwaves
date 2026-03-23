@@ -183,12 +183,14 @@ pub enum ValuePart {
 /// A transformation on a binary value (for `ChangeBits`).
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum BitPart {
+    #[serde(alias = "I")]
+    In,
     #[serde(alias = "C")]
     Concat(Vec<BitPart>),
     #[serde(alias = "L")]
     Lit(String),
     #[serde(alias = "S")]
-    Slice((usize, usize)),
+    Slice((usize, usize), Box<BitPart>),
 }
 
 /// A number format (integers only).
