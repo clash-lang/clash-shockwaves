@@ -25,6 +25,9 @@ module Clash.Shockwaves.BitList (
 
   -- * Using BitList as a number
   toInteger,
+
+  -- * Rest
+  hasUndefined,
 ) where
 
 import Clash.Shockwaves.Internal.BitList

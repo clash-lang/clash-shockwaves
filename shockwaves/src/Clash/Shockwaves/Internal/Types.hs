@@ -332,12 +332,12 @@ data BitPart
     BitPart's result is equal to that value.
     I.e. BPOneHot (0,3) "10" results in "001".
     -}
-    BPOneHot ISlice BitPart
+    BPOneHot Slice BitPart
   | {- | Turn a binary value into a n-hot signal based on the provided range.
     This essentially loops over all values in the range, creating a 1 iff the input
     BitPart's result is less than or equal to that value.
     -}
-    BPNHot ISlice BitPart
+    BPNHot Slice BitPart
   | {- | Switch bitparts based on the first bit in the condition bitpart:
     `BPIf (true) (false) (undef) (cond)`
     -}
