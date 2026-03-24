@@ -182,13 +182,43 @@ impl BitPart {
                         .collect::<Vec<_>>()
                         .concat(),
                 )
-            }
-
+            },
             BitPart::Lit(s) => StringLike::Slice(s),
             BitPart::Slice((a, b), bp) => match bp.from(bits) {
                 StringLike::Full(s) => StringLike::Full(s[*a..*b].to_string()),
                 StringLike::Slice(s) => StringLike::Slice(&s[*a..*b]),
             },
+            BitPart::HasUndefined(bp) => StringLike::Slice(if bp.from(bits).as_ref().contains('x') {"1"} else {"0"}),
+            BitPart::Reverse(bp) => StringLike::Full(bp.from(bits).as_ref().reverse()),
+            BitPart::Invert(bp) => StringLike::Full(bp.from(bits).as_ref().chars().map(|b| match b {
+                '1' => '0',
+                '0' => '1',
+                _ = 'x',
+            }).collect()),
+            BitPart::And(bps) | BitPart::Or(bps) | BitPart::Xor(bps) => {
+                let f = match self {
+                    BitPart::And(..) => |bs| bs.all(|b|b=='1'),
+                    BitPart::Or(..) => |bs| bs.any(|b|b=='0'),
+                    BitPart::Xor(..) => |bs| bs.count(|b|b=='1').is_odd(),
+                    _ => unreachable!(),
+                };
+                let parts = bps.iter().map(|bp| bp.from(bits)).collect::<Vec<_>>();
+                StringLike::Full(parts.transpose().map(f).collect())
+            },
+            BitPart::OneHot((f,t),bp) | BitPart::NHot((f,t),bp) => {
+                let k = todo!();
+                let cond = if matches!(BitPart::OneHot(..),self) {
+                    |i| i==k;
+                } else {
+                    |i| i<=k;
+                };
+                StringLike::Full((f..t).map(|i| if cond(i) {'1'} else {'0'}).collect())
+            },
+            BitPart::If{t,f,x,c} => StringLike::Full(match bp.from(bits).as_ref().chars().first() {
+                Some('1') => bp.from(t),
+                Some('0') => bp.from(f),
+                _ => bp.from(c),
+            }),
         }
     }
 }
