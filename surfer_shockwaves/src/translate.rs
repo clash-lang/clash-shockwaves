@@ -5,6 +5,7 @@ use surfer_translation_types::TranslationResult;
 
 use lazy_static::lazy_static;
 use num_bigint::{BigInt, BigUint};
+use std::cmp::Ordering;
 use std::iter::zip;
 
 use crate::data::*;
@@ -182,43 +183,90 @@ impl BitPart {
                         .collect::<Vec<_>>()
                         .concat(),
                 )
-            },
+            }
             BitPart::Lit(s) => StringLike::Slice(s),
             BitPart::Slice((a, b), bp) => match bp.from(bits) {
                 StringLike::Full(s) => StringLike::Full(s[*a..*b].to_string()),
                 StringLike::Slice(s) => StringLike::Slice(&s[*a..*b]),
             },
-            BitPart::HasUndefined(bp) => StringLike::Slice(if bp.from(bits).as_ref().contains('x') {"1"} else {"0"}),
-            BitPart::Reverse(bp) => StringLike::Full(bp.from(bits).as_ref().reverse()),
-            BitPart::Invert(bp) => StringLike::Full(bp.from(bits).as_ref().chars().map(|b| match b {
-                '1' => '0',
-                '0' => '1',
-                _ = 'x',
-            }).collect()),
-            BitPart::And(bps) | BitPart::Or(bps) | BitPart::Xor(bps) => {
-                let f = match self {
-                    BitPart::And(..) => |bs| bs.all(|b|b=='1'),
-                    BitPart::Or(..) => |bs| bs.any(|b|b=='0'),
-                    BitPart::Xor(..) => |bs| bs.count(|b|b=='1').is_odd(),
-                    _ => unreachable!(),
-                };
-                let parts = bps.iter().map(|bp| bp.from(bits)).collect::<Vec<_>>();
-                StringLike::Full(parts.transpose().map(f).collect())
-            },
-            BitPart::OneHot((f,t),bp) | BitPart::NHot((f,t),bp) => {
-                let k = todo!();
-                let cond = if matches!(BitPart::OneHot(..),self) {
-                    |i| i==k;
+            BitPart::HasUndefined(bp) => {
+                StringLike::Slice(if bp.from(bits).as_ref().contains('x') {
+                    "1"
                 } else {
-                    |i| i<=k;
+                    "0"
+                })
+            }
+            BitPart::Reverse(bp) => {
+                StringLike::Full(bp.from(bits).as_ref().chars().rev().collect())
+            }
+            BitPart::Invert(bp) => StringLike::Full(
+                bp.from(bits)
+                    .as_ref()
+                    .chars()
+                    .map(|b| match b {
+                        '1' => '0',
+                        '0' => '1',
+                        _ => 'x',
+                    })
+                    .collect(),
+            ),
+            BitPart::And(bps) | BitPart::Or(bps) | BitPart::Xor(bps) => {
+                let parts = bps.iter().map(|bp| bp.from(bits)).collect::<Vec<_>>();
+                let n = parts.first().unwrap().as_ref().len();
+                assert!(parts.iter().all(|b| b.as_ref().len() == n));
+
+                let trans = (0..n)
+                    .map(|i| {
+                        parts
+                            .iter()
+                            .map(|b| b.as_ref().chars().nth(i).unwrap())
+                            .collect()
+                    })
+                    .collect::<Vec<Vec<_>>>();
+
+                fn b2c(b: bool) -> char {
+                    if b { '1' } else { '0' }
+                }
+
+                StringLike::Full(match self {
+                    BitPart::And(..) => trans
+                        .into_iter()
+                        .map(|bs| b2c(bs.iter().all(|b| *b == '1')))
+                        .collect(),
+                    BitPart::Or(..) => trans
+                        .into_iter()
+                        .map(|bs| b2c(bs.contains(&'1')))
+                        .collect(),
+                    BitPart::Xor(..) => trans
+                        .into_iter()
+                        .map(|bs| b2c(bs.iter().filter(|b| **b == '1').count() & 1 == 1))
+                        .collect(),
+                    _ => unreachable!(),
+                })
+            }
+            BitPart::OneHot((f, t), bp) | BitPart::NHot((f, t), bp) => {
+                let k = match usize::from_str_radix(bp.from(bits).as_ref(), 2) {
+                    Ok(k) => k,
+                    Err(_) => {
+                        return StringLike::Full("x".repeat(t - f));
+                    }
                 };
-                StringLike::Full((f..t).map(|i| if cond(i) {'1'} else {'0'}).collect())
+
+                StringLike::Full(
+                    (*f..*t)
+                        .map(|i| match (i.cmp(&k), self) {
+                            (Ordering::Less, BitPart::NHot(..)) => '1',
+                            (Ordering::Equal, _) => '1',
+                            _ => '0',
+                        })
+                        .collect(),
+                )
+            }
+            BitPart::If { t, f, x, c } => match c.from(bits).as_ref().chars().nth(0) {
+                Some('1') => t.from(bits),
+                Some('0') => f.from(bits),
+                _ => x.from(bits),
             },
-            BitPart::If{t,f,x,c} => StringLike::Full(match bp.from(bits).as_ref().chars().first() {
-                Some('1') => bp.from(t),
-                Some('0') => bp.from(f),
-                _ => bp.from(c),
-            }),
         }
     }
 }

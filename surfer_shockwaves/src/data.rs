@@ -204,14 +204,16 @@ pub enum BitPart {
     #[serde(alias = "^")]
     Xor(Vec<BitPart>),
     #[serde(alias = "h")]
-    OneHot((usize,usize),Box<BitPart>),
+    OneHot((usize, usize), Box<BitPart>),
     #[serde(alias = "H")]
-    NHot((usize,usize),Box<BitPart>),
+    NHot((usize, usize), Box<BitPart>),
     #[serde(alias = "?")]
-    If{t::Box<BitPart>,
-       f::Box<BitPart>,
-       x::Box<BitPart>,
-       c::Box<BitPart>}
+    If {
+        t: Box<BitPart>,
+        f: Box<BitPart>,
+        x: Box<BitPart>,
+        c: Box<BitPart>,
+    },
 }
 
 /// A number format (integers only).
