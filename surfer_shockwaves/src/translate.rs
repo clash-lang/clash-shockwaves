@@ -233,10 +233,7 @@ impl BitPart {
                         .into_iter()
                         .map(|bs| b2c(bs.iter().all(|b| *b == '1')))
                         .collect(),
-                    BitPart::Or(..) => trans
-                        .into_iter()
-                        .map(|bs| b2c(bs.contains(&'1')))
-                        .collect(),
+                    BitPart::Or(..) => trans.into_iter().map(|bs| b2c(bs.contains(&'1'))).collect(),
                     BitPart::Xor(..) => trans
                         .into_iter()
                         .map(|bs| b2c(bs.iter().filter(|b| **b == '1').count() & 1 == 1))
