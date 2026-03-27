@@ -89,7 +89,7 @@ style = "$myRed"
 
 
 **IMPORTANT:** There exists one more wavestyle: `WSError`. This style is meant for
-`unknown` values, and gets propagated upwards in the signal tree all the way to the
+`undefined` values, and gets propagated upwards in the signal tree all the way to the
 topmost signal.
 
 ### ADDING WAVESTYLES TO THE DATA TYPE

@@ -490,7 +490,7 @@ safeTranslation = safeValOr (errorT "undefined")
 
 {- | Given a function that renders a value, and a function that (given this 'Render')
 prodices the subsignals, create a translation.
-If rendering fails, @"unknown"@ is displayed. If creating the subsignals fails, no subsignals are shown.
+If rendering fails, @"undefined"@ is displayed. If creating the subsignals fails, no subsignals are shown.
 -}
 translateWith ::
   (a -> Render) -> (Render -> a -> [(SubSignal, Translation)]) -> a -> Translation
@@ -697,7 +697,16 @@ instance
   typeName = typeNameP (Proxy @a)
   translator =
     Translator (width @(WaveformForNumber f s a))
-      $ TNumber{format = formatVal (Proxy @f), spacer = spacerVal (Proxy @s)}
+      $ TNumber
+        { format = formatVal (Proxy @f)
+        , spacer = spacerVal (Proxy @s)
+        , prefix = case formatVal (Proxy @f) of
+            NFBin -> "0b"
+            NFOct -> "0o"
+            NFHex -> "0X"
+            _ -> ""
+        , warn = False
+        }
 
 -- | Default spacer for decimal values (@_@ every 3 digits)
 type DecSpacer = 'Just '(3, "_")

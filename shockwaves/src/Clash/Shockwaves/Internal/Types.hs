@@ -295,7 +295,11 @@ data TranslatorVariant
       { format :: NumberFormat
       -- ^ Format used to display data.
       , spacer :: NumberSpacer
-      -- ^ Optional spacer to improve readability
+      -- ^ Optional spacer to improve readability.
+      , prefix :: String
+      -- ^ String to prefix the result with.
+      , warn :: Bool
+      -- ^ Whether to use WSWarn rather than WSError in case of undefined bits.
       }
   | -- | A constant translation value. The binary value provided is completely ignored.
     TConst Translation
@@ -307,12 +311,14 @@ Each constructor modifies bits in a certain way.
 More may be added later.
 -}
 data BitPart
-  = -- | Pass the binary data onto multiple 'BitPart's, and concatenate their results.
-    BPConcat [BitPart]
+  = -- | Return the input binary.
+    BPIn
   | -- | Return the 'BitList', ignoring the input.
     BPLit BitList
   | -- | Return a slice of the input. **Important**: slice indices start to the left, i.e. with the MSB!
-    BPSlice Slice
+    BPSlice Slice BitPart
+  | -- | Pass the binary data onto multiple 'BitPart's, and concatenate their results.
+    BPConcat [BitPart]
   deriving (Show)
 
 -- | Parts of the value of 'TAdvancedProduct'.
@@ -354,9 +360,10 @@ instance IsString BitPart where
   fromString s = BPLit $ fromString s
 
 instance ToJSON BitPart where
-  toJSON (BPConcat bp) = object ["C" .= bp]
+  toJSON (BPConcat bps) = object ["C" .= bps]
   toJSON (BPLit bl) = object ["L" .= show bl]
-  toJSON (BPSlice s) = object ["S" .= s]
+  toJSON (BPSlice s bp) = object ["S" .= [toJSON s, toJSON bp]]
+  toJSON BPIn = "I"
 
 instance ToJSON ValuePart where
   toJSON (VPLit s) = object ["L" .= s]
@@ -392,12 +399,14 @@ instance ToJSON Translator where
           ]
       TConst t -> object ["C" .= toJSON t]
       TLut lut TypeRef{structureRef} -> object ["L" .= [toJSON lut, toJSON structureRef]]
-      TNumber{format, spacer} ->
+      TNumber{format, spacer, prefix, warn} ->
         object
           [ "N"
               .= object
                 [ "f" .= format
                 , "s" .= spacer
+                , "p" .= prefix
+                , "w" .= warn
                 ]
           ]
       TArray{sub, len, start, sep, stop, preci, preco} ->

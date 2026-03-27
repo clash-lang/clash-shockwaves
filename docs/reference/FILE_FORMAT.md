@@ -99,12 +99,26 @@ There are many translator variants available:
   - `"]":"<stop>"`: the terminating string
   - `"p":<prec>`: the precedence to compare subsignal values to
   - `"P":<prec>`: the precedence of the output
-- `{"N":{"f":<format>}}`: a number. `<format>` can be:
-  - `"U"`: unsigned
-  - `"S"`: signed
-  - `"H"`: hexadecimal
-  - `"O"`: octal
-  - `"B"`: binary
+- `{"N":{...}}`: an integer number.
+  - `"f":<format>` `<format>` can be:
+    - `"U"`: unsigned
+    - `"S"`: signed
+    - `"H"`: hexadecimal
+    - `"O"`: octal
+    - `"B"`: binary
+  - `"s":[<digits>,<text>]`: a the spacer to use (the string `<test>` every `<digits>` digits).
+    `null` if no spacer should be inserted.
+  - `"p":<prefix>`: the prefix to use (for example, `0b` for binary numbers)
+  - `"w":<warn>`: bool indicating whether the warning style should be used rather than the
+    error style if one or more bits are undefined.
 - `{"D":["<sub>",<translator>]}`: put the output of `<translator>` in subsignal `<sub>` and copy its value.
 - `{"X":[<style>,<translator>]}`: apply a style to the output of `<translator>`.
 - `{"C":<translation>}`: a constant translation value.
+- `{"B":{...}}`: translate modified binary
+  - `"t":<translator>`: translator to translate with
+  - `"b":<bitpart>`: the constructor for the binary value. `<bitpart>` can be:
+    - `"I"`: the input binary
+    - `{"L":<binary>}`: a literal binary string
+    - `{"S":[[<from>,<to>],<bitpart>]}`: take the (half open) slice `(from,to)` from the output of `<bitpart>`
+    - `{"C":[<bitpart>,...]}`: concatenate the output of the `<bitpart>`s
+

@@ -75,7 +75,8 @@ filterSignals = L.filter ((/= "") . fst)
 changeBits :: BitPart -> BitList -> BitList
 changeBits (BPConcat bps) bin = L.foldl (<>) "" $ L.map (`changeBits` bin) bps
 changeBits (BPLit bl)    _bin = bl
-changeBits (BPSlice s)    bin = BL.slice s bin
+changeBits (BPSlice s bp) bin = BL.slice s $ changeBits bp bin
+changeBits BPIn           bin = bin
 {- FOURMOLU_ENABLE -}
 
 {- FOURMOLU_DISABLE -}
@@ -189,19 +190,19 @@ translateBinT trans@(Translator width variant) bin''@(BL _ _ blLength)
   , bin <- BL.take width bin'' = case variant of
       TRef _ TypeRef{translateBinRef} -> translateBinRef bin
       TLut _ TypeRef{translateBinRef} -> translateBinRef bin
-      TNumber{format, spacer} -> Translation (if isJust render then render else Just ("undefined", WSError, 11)) []
+      TNumber{format, spacer, prefix, warn} -> Translation (if isJust render then render else Just ("undefined", WSError, 11)) []
        where
         bin' = show bin
         render :: Render
         render =
-          (\((pref, v), s, p) -> (pref <> applySpacer spacer v, s, p)) <$> case format of
-            NFBin -> Just (("0b", bin'), undefStyle, 11)
-            NFOct -> Just (("0o", hexDigit <$> chunksOf 3 (extendBits 3)), undefStyle, 11)
-            NFHex -> Just (("0X", hexDigit <$> chunksOf 4 (extendBits 4)), undefStyle, 11)
-            NFUns -> (\i -> (("", show i), WSDefault, 11)) <$> decodeUns 0 bin'
-            NFSig -> (\i -> (("", show i), WSDefault, if i >= 0 then 11 else 0)) <$> decodeSig bin'
+          (\(v, s, p) -> (prefix <> applySpacer spacer v, s, p)) <$> case format of
+            NFBin -> Just (bin', undefStyle, 11)
+            NFOct -> Just (hexDigit <$> chunksOf 3 (extendBits 3), undefStyle, 11)
+            NFHex -> Just (hexDigit <$> chunksOf 4 (extendBits 4), undefStyle, 11)
+            NFUns -> (\i -> (show i, WSDefault, 11)) <$> decodeUns 0 bin'
+            NFSig -> (\i -> (show i, WSDefault, if i >= 0 then 11 else 0)) <$> decodeSig bin'
 
-        undefStyle = if 'x' `elem` bin' then WSError else WSDefault
+        undefStyle = if 'x' `elem` bin' then (if warn then WSWarn else WSError) else WSDefault
         extendBits k = L.replicate (k - 1 - ((width + k - 1) `rem` k)) '0' <> bin'
 
         hexDigit :: String -> Char
@@ -272,7 +273,7 @@ the structure of a constant translation.
 structureT :: Translator -> Structure
 structureT (Translator _ t) = case t of
   TRef _ TypeRef{structureRef} -> structureRef
-  TSum ts -> Structure subs
+  TSum ts -> Structure $ mergeDuplicateSubsignals subs
    where
     subs = L.concatMap (getS . structureT) ts
     getS (Structure s) = s
@@ -295,6 +296,25 @@ structureT (Translator _ t) = case t of
   TStyled _ t' -> structureT t'
   TDuplicate n t' -> Structure [(n, structureT t')]
   TChangeBits{sub} -> structureT sub
+
+-- | Merge duplicate subsignals in a list of subsignal structures.
+mergeDuplicateSubsignals :: [(SubSignal, Structure)] -> [(SubSignal, Structure)]
+mergeDuplicateSubsignals = L.reverse . L.foldr addSignal [] . L.reverse
+ where
+  addSignal ::
+    (SubSignal, Structure) -> [(SubSignal, Structure)] -> [(SubSignal, Structure)]
+  addSignal sig signals = case L.mapAccumL mergeOrPass (Just sig) signals of
+    (Nothing, signals') -> signals'
+    (Just sig', signals') -> sig' : signals'
+   where
+    mergeOrPass ::
+      Maybe (SubSignal, Structure) ->
+      (SubSignal, Structure) ->
+      (Maybe (SubSignal, Structure), (SubSignal, Structure))
+    mergeOrPass (Just (name, Structure s)) (name', Structure s')
+      | name == name' =
+          (Nothing, (name, Structure $ mergeDuplicateSubsignals (s' <> s)))
+    mergeOrPass newsig oldsig = (newsig, oldsig)
 
 -- | Construct a 't:Structure' from a 't:Translation'.
 fromTranslation :: Translation -> Structure

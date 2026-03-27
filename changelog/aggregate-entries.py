@@ -19,7 +19,7 @@ for e in entries:
         variant,descr = txt.split("\n",1)
     except:
         raise Exception("Error reading "+e)
-    changes[variant].append(descr)
+    changes[variant].append(descr.rstrip())
 
 blocks = sorted(changes.items(),key=lambda i: variants.index(i[0]) if i[0] in variants else -1)
 

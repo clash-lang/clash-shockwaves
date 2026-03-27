@@ -43,7 +43,7 @@ If an operator constructor has a different number of fields, it is parenthesized
 Values are always rendered according to the information actually stored in the binary representation.
 This means the system will render both `(undefined,undefined)` and `undefined` as `(undefined,undefined)`:
 since there is only one constructor, the value can only be that constructor, and this is known
-regardless of whether the value was actually `unknown` during code execution or not.
+regardless of whether the value was actually `undefined` during code execution or not.
 The translation functions provided in the library, which are meant for creating LUT-based translations,
 mimic this behaviour.
 

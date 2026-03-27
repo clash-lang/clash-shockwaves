@@ -29,4 +29,4 @@ timestamp = time.strftime("%Y-%M-%d_T%H:%M:%S")
 fname = f"{timestamp}_{variant}_{title}"
 print("Storing to",fname)
 with open(fname,"w") as fp:
-    fp.write(variant+"\n"+description)
+    fp.write(variant+"\n"+description+"\n")

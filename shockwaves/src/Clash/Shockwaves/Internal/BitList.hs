@@ -117,7 +117,7 @@ instance ToJSONKey BitList where
 {- FOURMOLU_DISABLE -}
 -- | When converting from a string, `0` and `1` are interpreted as bits, and
 -- `_` is treated as a spacer (is ignored). Any other characters are interpreted
--- as unknown bits.
+-- as undefined bits.
 instance IsString BitList where
   fromString ss = go ss (BL 0 0 0)
     where
