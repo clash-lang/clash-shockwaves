@@ -1,0 +1,3 @@
+CHANGED
+Made the unknown style var log message a less alarming warning.
+[!73](https://github.com/clash-lang/clash-shockwaves/issues/73)
