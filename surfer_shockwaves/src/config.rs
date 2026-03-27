@@ -146,7 +146,7 @@ impl Config {
                 ws
             }
             None => {
-                error!("SHOCKWAVES: Unknown style var {var}");
+                warn!("SHOCKWAVES: Unknown style var {var}; using default");
                 None
             }
         }
