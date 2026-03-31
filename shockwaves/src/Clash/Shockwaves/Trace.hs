@@ -203,7 +203,7 @@ addSignal name m@Maps{signalMap,typeMap} =
 maps# :: IORef Maps
 maps# = unsafePerformIO $ newIORef def
 -- See: https://github.com/clash-lang/clash-compiler/pull/2511
-{-# CLASH_OPAQUE maps# #-}
+{-# OPAQUE maps# #-}
 
 mkTrace
   :: HasCallStack
@@ -253,7 +253,7 @@ traceSignal# maps period traceName signal =
       , signal ) )
 
 -- See: https://github.com/clash-lang/clash-compiler/pull/2511
-{-# CLASH_OPAQUE traceSignal# #-}
+{-# OPAQUE traceSignal# #-}
 
 -- | Trace a single vector signal: each element in the vector will show up as
 -- a different trace. If the trace name already exists, this function will emit
@@ -281,7 +281,7 @@ traceVecSignal# maps period vecTraceName (unbundle -> vecSignal) =
   trace' i s = traceSignal# maps period (name' i) s
   name' i    = vecTraceName ++ "_" ++ show i
 -- See: https://github.com/clash-lang/clash-compiler/pull/2511
-{-# CLASH_OPAQUE traceVecSignal# #-}
+{-# OPAQUE traceVecSignal# #-}
 
 -- | Trace a single signal. Will emit an error if a signal with the same name
 -- was previously registered.
@@ -307,7 +307,7 @@ traceSignal traceName = simOnly $ \signal ->
       unsafePerformIO $
         traceSignal# maps# (snatToNum sPeriod) traceName signal
 -- See: https://github.com/clash-lang/clash-compiler/pull/2511
-{-# CLASH_OPAQUE traceSignal #-}
+{-# OPAQUE traceSignal #-}
 
 -- | Trace a single signal. Will emit an error if a signal with the same name
 -- was previously registered.
@@ -329,7 +329,7 @@ traceSignal1
 traceSignal1 traceName = simOnly $ \signal ->
   unsafePerformIO (traceSignal# maps# 1 traceName signal)
 -- See: https://github.com/clash-lang/clash-compiler/pull/2511
-{-# CLASH_OPAQUE traceSignal1 #-}
+{-# OPAQUE traceSignal1 #-}
 
 -- | Trace a single vector signal: each element in the vector will show up as
 -- a different trace. If the trace name already exists, this function will emit
@@ -357,7 +357,7 @@ traceVecSignal traceName = simOnly $ \signal ->
       unsafePerformIO $
         traceVecSignal# maps# (snatToNum sPeriod) traceName signal
 -- See: https://github.com/clash-lang/clash-compiler/pull/2511
-{-# CLASH_OPAQUE traceVecSignal #-}
+{-# OPAQUE traceVecSignal #-}
 
 -- | Trace a single vector signal: each element in the vector will show up as
 -- a different trace. If the trace name already exists, this function will emit
@@ -381,7 +381,7 @@ traceVecSignal1
 traceVecSignal1 traceName = simOnly $ \signal ->
   unsafePerformIO $ traceVecSignal# maps# 1 traceName signal
 -- See: https://github.com/clash-lang/clash-compiler/pull/2511
-{-# CLASH_OPAQUE traceVecSignal1 #-}
+{-# OPAQUE traceVecSignal1 #-}
 
 iso8601Format :: UTCTime -> String
 iso8601Format = formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S"
