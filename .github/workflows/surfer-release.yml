@@ -23,5 +23,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: WASM Surfer extension
-          path: surfer-shockwaves/surfer-shockwaves.wasm
+          path: surfer-shockwaves/surfer_shockwaves.wasm
           if-no-files-found: error
