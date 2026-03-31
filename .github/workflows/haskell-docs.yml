@@ -1,6 +1,12 @@
 name: 'haskell-docs'
 
 on:
+  push:
+    paths:
+      - '.github/workflows/haskell-docs.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/haskell-docs.yml'
   workflow_dispatch:
 
 

@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - 'shockwaves/**'
+      - '.github/workflows/haskell-test.yml'
   workflow_dispatch:
 
 jobs:

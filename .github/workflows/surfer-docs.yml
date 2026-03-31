@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - 'surfer_shockwaves/**'
+      - '.github/workflows/surfer-docs.yml'
   workflow_dispatch:
 
 env:

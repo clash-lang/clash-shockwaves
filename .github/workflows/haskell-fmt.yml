@@ -6,10 +6,12 @@ on:
     paths:
       - 'shockwaves/src/**'
       - 'shockwaves/tests/**'
+      - '.github/workflows/haskell-fmt.yml'
   pull_request:
     paths:
       - 'shockwaves/src/**'
       - 'shockwaves/tests/**'
+      - '.github/workflows/haskell-fmt.yml'
   workflow_dispatch:
 
 jobs:
