@@ -3,7 +3,7 @@ set -e
 
 cargo build --target wasm32-unknown-unknown
 
-WASM="target/wasm32-unknown-unknown/debug/surfer_shockwaves.wasm"
+WASM="target/wasm32-unknown-unknown/debug/surfer-shockwaves.wasm"
 
 # optionally:
 if [ "$1" = "linux" ]; then
