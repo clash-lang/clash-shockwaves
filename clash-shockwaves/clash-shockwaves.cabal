@@ -1,5 +1,5 @@
 cabal-version:       2.4
-name:                shockwaves
+name:                clash-shockwaves
 version:             0.0.0
 license:             BSD-2-Clause
 author:              Marijn Adriaanse <marijn@qbaylogic.com>
@@ -110,7 +110,7 @@ library
     CPP-Options: -DLARGE_TUPLES
   hs-source-dirs: src
   exposed-modules:
-    Paths_shockwaves
+    Paths_clash_shockwaves
     Clash.Shockwaves
     Clash.Shockwaves.Waveform
     Clash.Shockwaves.LUT
@@ -132,7 +132,7 @@ library
 executable clash
   main-is: bin/Clash.hs
   default-language: Haskell2010
-  Build-Depends: base, clash-ghc, shockwaves
+  Build-Depends: base, clash-ghc, clash-shockwaves
   if !os(Windows)
     ghc-options: -dynamic
 
@@ -142,7 +142,7 @@ executable clashi
   default-language: Haskell2010
   if !os(Windows)
     ghc-options: -dynamic
-  build-depends: base, clash-ghc, shockwaves
+  build-depends: base, clash-ghc, clash-shockwaves
 
 -- Run a bunch of tests about translators and translations
 test-suite test-library
@@ -156,7 +156,7 @@ test-suite test-library
     Tests.Structure
     Tests.Types
   build-depends:
-    shockwaves,
+    clash-shockwaves,
     tasty >= 1.2 && < 1.6,
     tasty-hunit,
     tasty-th
@@ -172,5 +172,5 @@ test-suite test-vcd
   other-modules:
     Tests.Types
   build-depends:
-    shockwaves,
+    clash-shockwaves,
     directory

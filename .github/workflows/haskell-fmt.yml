@@ -4,7 +4,7 @@ name: 'haskell-fmt'
 on:
 #  pull_request:
 #    paths:
-#      - 'shockwaves/src**'
+#      - 'clash-shockwaves/src**'
   workflow_dispatch:
 
 env:
@@ -23,5 +23,5 @@ jobs:
           cabal-version: '3.14.2.0'
       - name: Check formatting
         run: |
-          cd $GITHUB_WORKSPACE/shockwaves
+          cd $GITHUB_WORKSPACE/clash-shockwaves
           fourmolu -m check src

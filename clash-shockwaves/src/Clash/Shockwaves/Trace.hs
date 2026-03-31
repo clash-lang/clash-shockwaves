@@ -151,7 +151,7 @@ import           Clash.Shockwaves.Internal.Waveform hiding (width)
 
 #ifdef CABAL
 import qualified Data.Version
-import qualified Paths_shockwaves
+import qualified Paths_clash_shockwaves
 #endif
 
 -- | A clock period in _ns_.
@@ -482,7 +482,7 @@ dumpVCD## (offset, cycles) Maps{signalMap,typeMap,traceMap} now
   headerDate       = ["$date", Text.pack $ iso8601Format now, "$end"]
 
 #ifdef CABAL
-  clashVer         = "Shockwaves" <> Data.Version.showVersion Paths_shockwaves.version -- actually Shockwaves version; TODO
+  clashVer         = "Shockwaves" <> Data.Version.showVersion Paths_clash_shockwaves.version -- actually Shockwaves version; TODO
 #else
   clashVer         = "development"
 #endif

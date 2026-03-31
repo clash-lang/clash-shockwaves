@@ -2,8 +2,8 @@
 
 To start using shockwaves, you need three things:
 - the latest version of [Surfer](https://gitlab.com/surfer-project/surfer)
-- the Shockwaves Surfer extension (see the `surfer_shockwaves` folder; compiled versions can be found as artefacts under the Actions tab)
-- the `Clash.Shockwaves` Haskell library (this repo, in `/shockwaves/`)
+- the Shockwaves Surfer extension (see the `surfer-shockwaves` folder; compiled versions can be found as artefacts under the Actions tab)
+- the `Clash.Shockwaves` Haskell library (this repo, in `/clash-shockwaves/`)
 
 Install Surfer (available [here](https://surfer-project.org/)) and add the Shockwaves extension (instructions below).
 If the extension is installed correctly, Surfer's console output should clearly show it
@@ -16,14 +16,14 @@ Add the repository `clash-lang/clash-shockwaves` to your Haskell project (instru
 To use Shockwaves, you need the Shockwaves translator extension WASM file.
 Precompiled version can be found on this github's Actions page, under `> surfer-release-compile`
 ([here](https://github.com/clash-lang/clash-shockwaves/actions/workflows/surfer-release.yml)).
-Make sure to unzip the artefact - you need `surfer_shockwaves.wasm`.
+Make sure to unzip the artefact - you need `surfer-shockwaves.wasm`.
 
 The `.wasm` file needs to be placed in Surfer's translators directory.
 This is `~/.local/share/surfer/translators` on Linux.
 If you do not have any other Surfer extensions, you will need to create this folder yourself.
 
-Alternatively, you can compile `surfer_shockwaves/`  yourself.
-The `compile.sh` script in `surfer_shockwaves/` performs compilation with the right settings.
+Alternatively, you can compile `surfer-shockwaves/`  yourself.
+The `compile.sh` script in `surfer-shockwaves/` performs compilation with the right settings.
 You can supply the script with the options `linux` or `windows` to automatically copy the
 translator to the right directory.
 
@@ -36,7 +36,7 @@ INFO libsurfer::translation::wasm_translator: Looking for translators in /home/M
 
 If the translator is found, the output should look like this:
 ```
-INFO libsurfer::translation::wasm_translator: Found /home/Me/.local/share/surfer/translators/surfer_shockwaves.wasm
+INFO libsurfer::translation::wasm_translator: Found /home/Me/.local/share/surfer/translators/surfer-shockwaves.wasm
 ```
 
 > Note: some of the logging statements may be changed by the Surfer devs!
@@ -50,7 +50,7 @@ For Stack, add the following to your `stack.yaml` file:
 - git: https://github.com/clash-lang/clash-shockwaves.git
   commit: <commit name>
   subdirs:
-  - shockwaves
+  - clash-shockwaves
 ```
 
 For Cabal, add the following to your `cabal.project` file:
@@ -61,7 +61,7 @@ source-repository-package
   location: https://github.com/clash-lang/clash-shockwaves.git
   tag: 8bac2a6ee1dbc6bb5018bd749bb86a8b9663b020
   subdir:
-    shockwaves
+    clash-shockwaves
 ```
 
 Finally, add `shockwaves` as a dependency to your `<project>.cabal` file.

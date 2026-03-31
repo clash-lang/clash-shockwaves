@@ -4,7 +4,7 @@ name: 'surfer-docs'
 on:
   pull_request:
     paths:
-      - 'surfer_shockwaves/**'
+      - 'surfer-shockwaves/**'
   workflow_dispatch:
 
 env:
@@ -18,11 +18,11 @@ jobs:
         uses: actions/checkout@v4
       - name: Create docs
         run: |
-          cd $GITHUB_WORKSPACE/surfer_shockwaves
+          cd $GITHUB_WORKSPACE/surfer-shockwaves
           cargo doc --document-private-items --target-dir docs --no-deps
       - name: Upload Rust docs
         uses: actions/upload-artifact@v4
         with:
           name: Rust docs
-          path: surfer_shockwaves/docs/doc
+          path: surfer-shockwaves/docs/doc
           if-no-files-found: error

@@ -16,12 +16,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Compile extension
         run: |
-          cd $GITHUB_WORKSPACE/surfer_shockwaves
+          cd $GITHUB_WORKSPACE/surfer-shockwaves
           rustup target add wasm32-unknown-unknown
           ./compile.sh here
       - name: Upload WASM file
         uses: actions/upload-artifact@v4
         with:
           name: WASM Surfer extension
-          path: surfer_shockwaves/surfer_shockwaves.wasm
+          path: surfer-shockwaves/surfer-shockwaves.wasm
           if-no-files-found: error

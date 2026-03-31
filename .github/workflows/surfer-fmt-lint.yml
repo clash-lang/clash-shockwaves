@@ -4,10 +4,10 @@ name: 'surfer-fmt-lint'
 on:
   push:
     paths:
-      - 'surfer_shockwaves/**'
+      - 'surfer-shockwaves/**'
   pull_request:
     paths:
-      - 'surfer_shockwaves/**'
+      - 'surfer-shockwaves/**'
   workflow_dispatch:
 
 env:
@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Check formatting
         run: |
-          cd $GITHUB_WORKSPACE/surfer_shockwaves
+          cd $GITHUB_WORKSPACE/surfer-shockwaves
           cargo fmt --check
   clippy:
     runs-on: ubuntu-latest
@@ -29,5 +29,5 @@ jobs:
       - uses: actions/checkout@v6
       - name: Run Clippy
         run: |
-          cd $GITHUB_WORKSPACE/surfer_shockwaves
+          cd $GITHUB_WORKSPACE/surfer-shockwaves
           cargo clippy --all-targets --all-features
