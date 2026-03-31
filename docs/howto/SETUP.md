@@ -70,3 +70,10 @@ For simple usage, you just need to import `Clash.Shockwaves`.
 Since both `Clash.Shockwaves` and `Clash.Prelude` export tracing functions,
 you might want to use a qualified import of `Clash.Shockwaves.Trace`,
 or hide the functions exported by the prelude.
+
+### ADDING A CONFIG FILE
+
+While Shockwaves works perfectly fine without additional configuration, it is
+recommended that you also install [this config file](config/shockwaves.toml).
+It has some good default options that will, for example, make `Bool` and `Maybe` easier to see.
+Config files are discussed in [this guide](CONFIG.md).

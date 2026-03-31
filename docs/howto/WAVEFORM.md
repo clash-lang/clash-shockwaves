@@ -36,7 +36,14 @@ If you have a constant value (such as a unit type or a constructor without field
 `TConst`. This is simply a constant translation value.
 
 ```hs
-Translator 0 $ TConst $ Translation (Just (TODO,TODO,TODO)) [("sub",Translation (Just (TODO,TODO,TODO)) [])]
+Translator 0 $ TConst $ Translation (Just ("<X>",WSWarn,11))
+  [("sub", Translation (Just ("No information is stored in the VCD",WSDefault,11)) [])]
+```
+
+If you just need a single render value, use `tConst` instead:
+
+```hs
+tConst $ Just ("<X>",WSWarn,11)
 ```
 
 #### Sum types
@@ -66,7 +73,7 @@ translator = Translator width $ TSum
 
 If the capabilities of `TSum` are insufficient, you might want to use `TAdvancedSum`. This translator
 allows you to select the bits used to determine the variant, selects the translator based on ranges of values,
-and passes all bits to the selected translator.
+and passes all bits to the selected translator. See [this guide](ADVANCED.md).
 
 
 #### Product types
@@ -103,10 +110,11 @@ For custom operators, just use the operator precedence for both.
 If values never need parentheses, use `preci=-1` and `preco=11`.
 In a case like `fromList [<sub[0]>,<sub[1]>]` you'd want to use `preco=10` (because the value is joined by a space)
 but `preci=-1` (since the list syntax isolates the subvalues, so they never need parentheses).
+For a more detailed look, see [this guide](PREC.md).
 
 If `TProduct` is not flexible enough, you might want to use `TAdvancedProduct`. This translator
 allows you to translate arbitrary slices of bits with translators, and then construct the value
-and subsignals from these translations.
+and subsignals from these translations. See [this guide](ADVANCED.md).
 
 #### Arrays
 If your datatype looks more like a homogeneous list, you'll likely want to use `TArray`
@@ -151,16 +159,18 @@ Like `tDup`, `tStyled` is the easiest way to change the style of a translator.
 translator' = tStyled "red" translator
 ```
 
+> **Note:** when opened in Surfer, style variables are replaced _before_ any translations
+> take place. This means that `TStyled` will happily replace any style variable that
+> resolves to `WSDefault`. However, when translating inside Haskell, the style variables
+> are not resolved at all, and as such, will not be replaced either. This difference in
+> behavior might cause unexpected behaviour when using LUTs under very specific circumstances.
+
 #### Manipulating bits
 
 Sometimes, the binary representation of a type does not allow for the translation you want.
 If this is the case, it's by far the easiest to change to using LUTs. However, if you want
 a more performant option, it might be possible to change the bits using the `TChangeBits`
-translator.
-
-'TChangeBits' has a field `bits` of type `BitPart` which defines what bits get passed on to the
-translator included. 
-
+translator. See [this guide](ADVANCED.md).
 
 #### Creating custom translator configurations
 Although the translators must still process the bits correctly, a lot of
