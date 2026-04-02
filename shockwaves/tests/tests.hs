@@ -1,9 +1,9 @@
-
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
 import Prelude
 
@@ -12,12 +12,14 @@ import Test.Tasty.HUnit
 
 import Clash.Shockwaves.Internal.Types
 import Clash.Shockwaves.Internal.Util
+
 -- import Clash.Shockwaves.Internal.Translator
-import Clash.Shockwaves.Internal.Waveform
+
 import Clash.Prelude
+import Clash.Shockwaves.Internal.Waveform
+import Data.Bifunctor (second)
 import qualified Data.List as L
 import qualified Data.Map as M
-import Data.Bifunctor (second)
 import Data.Maybe (fromMaybe)
 
 import Tests.Structure
@@ -37,7 +39,6 @@ main = defaultMain tests
 
 -}
 
-
 isR :: Either String () -> Assertion
 isR x = case x of
   Right () -> return ()
@@ -49,11 +50,13 @@ isL x = case x of
   Right () -> assertFailure "passed, but should have failed"
 
 tests :: TestTree
-tests = testGroup "Tests" [testStructureTest,structureTest,renderTest,translationTest,lutTest]
+tests =
+  testGroup
+    "Tests"
+    [testStructureTest, structureTest, rawStructureTest, renderTest, translationTest, lutTest]
 
 undef :: a
 undef = Clash.Prelude.undefined
-
 
 {- FOURMOLU_DISABLE -}
 {-
@@ -96,18 +99,13 @@ testStructureTest = testGroup "TEST testStructure FUNCTION"
   ]
 {- FOURMOLU_ENABLE -}
 
-
-
-
-
-
-
-testAll :: ShowX a => (a -> Assertion) -> [a] -> [TestTree]
+testAll :: (ShowX a) => (a -> Assertion) -> [a] -> [TestTree]
 testAll f = L.map go
-  where go x = testCase (showX x) (f x)
+ where
+  go x = testCase (showX x) (f x)
 
-testS :: Waveform a => a -> Assertion
-testS (x::a) = isR $ testStructure (structure @a) $ translate x
+testS :: (Waveform a) => a -> Assertion
+testS (x :: a) = isR $ testStructure (structure @a) $ translate x
 
 {- FOURMOLU_DISABLE -}
 {-
@@ -129,25 +127,44 @@ structureTest = testGroup "TRANSLATION MATCHES TRANSLATOR STRUCTURE"
   , testGroup "Maybe" $ testAll testS [Nothing, Just True, undef]
   , testGroup "Vec 2" $ testAll testS [True :> False :> Nil, undef :> undef :> Nil, undef]
   , testGroup "Vec 0" $ testAll testS [Nil @Bool, undef]
-  , testGroup "Pointer" $ testAll testS [Pointer @32 0, Pointer 1, Pointer 2, Pointer undef, undef]
-  , testGroup "NumRep" $ testAll testS $ NumRep <$> [0,1,3,4,7 :: Unsigned 3]
+  , testGroup "Pointer"   $ testAll testS [Pointer @32 0, Pointer 1, Pointer 2, Pointer undef, undef]
+  , testGroup "NumRep"    $ testAll testS $ NumRep <$> [0,1,3,4,7 :: Unsigned 3]
+  , testGroup "SumStruct" $ testAll testS $ [SSA $ Just True, SSB, SSC $ Left False, SSD]
   ]
 {- FOURMOLU_ENABLE -}
 
+--
 
+struct :: forall a. (Waveform a) => (Structure -> Int) -> Assertion
+struct p = pat p $ structure @a
 
+pattern Q :: [(SubSignal, Structure)] -> Structure
+pattern Q l <- Structure l
 
+{-
 
+Test whether the structure is as expected
 
+-}
+rawStructureTest :: TestTree
+rawStructureTest =
+  testGroup
+    "STRUCTURE AS EXPECTED"
+    [ testCase "SumStruct" $
+        struct @SumStruct
+          ( \(Q ["sub" :@ Q ["Just.0" :@ _, "Left" :@ _, "Right" :@ _], "B" :@ Q [], "D" :@ Q []]) -> 0
+          )
+    ]
 
+--
 
 renders :: (Waveform a, ShowX a) => [a] -> [String] -> [TestTree]
 renders xs = L.zipWith go rs'
-  where
-    getRen (Translation Nothing _) = ""
-    getRen (Translation (Just (s,_,_)) _) = s
-    rs' = L.map (\x -> (showX x, getRen $ translate x)) xs
-    go (n,x) y = testCase n $ x @?= y
+ where
+  getRen (Translation Nothing _) = ""
+  getRen (Translation (Just (s, _, _)) _) = s
+  rs' = L.map (\x -> (showX x, getRen $ translate x)) xs
+  go (n, x) y = testCase n $ x @?= y
 
 {- FOURMOLU_DISABLE -}
 -- A partially undefined vector spine will result in different pack values,
@@ -204,36 +221,28 @@ renderTest = testGroup "RENDERED STRING IS CORRECT"
   ]
 {- FOURMOLU_ENABLE -}
 
+data T = T (String, WaveStyle) [(String, T)] deriving (Show)
 
-
-
-
-
-
-
-
-data T = T (String,WaveStyle) [(String,T)] deriving (Show)
-
-pattern (:@) :: a -> b -> (a,b)
-pattern (:@) x y <- (x,y)
+pattern (:@) :: a -> b -> (a, b)
+pattern (:@) x y <- (x, y)
 
 toT :: Translation -> T
 toT (Translation ren subs) = T d $ L.map (second toT) subs
-  where d = case ren of
-          Just (v,s,_) -> (v,s)
-          Nothing -> ("",WSNormal)
+ where
+  d = case ren of
+    Just (v, s, _) -> (v, s)
+    Nothing -> ("", WSNormal)
 
-
-pat :: (T -> Int) -> T -> Assertion
+pat :: (Show t) => (t -> Int) -> t -> Assertion
 pat f v = case safeVal (f v) of
   Right _ -> return ()
   Left e -> assertFailure $ show v <> ": " <> fromMaybe "error" e
 
-pats :: (Waveform a, ShowX a) => [(a,T->Int)] -> [TestTree]
+pats :: (Waveform a, ShowX a) => [(a, T -> Int)] -> [TestTree]
 pats = L.map (uncurry go)
-  where
-    go :: (Waveform a, ShowX a) => a -> (T -> Int) -> TestTree
-    go x f = testCase (showX x) $ pat f $ toT $ translate x
+ where
+  go :: (Waveform a, ShowX a) => a -> (T -> Int) -> TestTree
+  go x f = testCase (showX x) $ pat f $ toT $ translate x
 
 {- FOURMOLU_DISABLE -}
 {-

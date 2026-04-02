@@ -1,0 +1,4 @@
+CHANGED
+Adding a config file is now part of the setup guide too.
+The provided config file has some good defaults, and immediately improve the user experience
+without the need to actually go into the configuration options.
