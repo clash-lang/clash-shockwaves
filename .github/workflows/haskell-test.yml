@@ -4,7 +4,7 @@ name: 'haskell-test'
 on:
   pull_request:
     paths:
-      - 'shockwaves/**'
+      - 'clash-shockwaves/**'
       - '.github/workflows/haskell-test.yml'
   workflow_dispatch:
 
@@ -22,11 +22,11 @@ jobs:
           stack-version: '3.7.1'
       - name: Run tests
         run: |
-          cd $GITHUB_WORKSPACE/shockwaves
+          cd $GITHUB_WORKSPACE/clash-shockwaves
           stack test
       - name: Upload VCD/JSON files
         uses: actions/upload-artifact@v4
         with:
           name: VCD test output
-          path: shockwaves/test
+          path: clash-shockwaves/test
           if-no-files-found: error

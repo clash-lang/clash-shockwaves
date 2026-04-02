@@ -1,8 +1,0 @@
-cradle:
-  cabal:
-    - path: "./src"
-      component: "lib:shockwaves"
-    - path: "./tests/vcd.hs"
-      component: "shockwaves:test-vcd"
-    - path: "./tests"
-      component: "shockwaves:test-library"

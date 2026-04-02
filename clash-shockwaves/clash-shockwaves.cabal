@@ -1,5 +1,5 @@
 cabal-version:       2.4
-name:                shockwaves
+name:                clash-shockwaves
 version:             0.0.0
 license:             BSD-2-Clause
 author:              Marijn Adriaanse <marijn@qbaylogic.com>
@@ -110,7 +110,7 @@ library
     CPP-Options: -DLARGE_TUPLES
   hs-source-dirs: src
   exposed-modules:
-    Paths_shockwaves
+    Paths_clash_shockwaves
     Clash.Shockwaves
     Clash.Shockwaves.Waveform
     Clash.Shockwaves.LUT
@@ -140,7 +140,7 @@ test-suite test-library
     Tests.Structure
     Tests.Types
   build-depends:
-    shockwaves,
+    clash-shockwaves,
     tasty >= 1.2 && < 1.6,
     tasty-hunit,
     tasty-th
@@ -156,5 +156,5 @@ test-suite test-vcd
   other-modules:
     Tests.Types
   build-depends:
-    shockwaves,
+    clash-shockwaves,
     directory

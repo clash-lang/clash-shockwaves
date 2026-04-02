@@ -4,13 +4,13 @@ name: 'haskell-fmt'
 on:
   push:
     paths:
-      - 'shockwaves/src/**'
-      - 'shockwaves/tests/**'
+      - 'clash-shockwaves/src/**'
+      - 'clash-shockwaves/tests/**'
       - '.github/workflows/haskell-fmt.yml'
   pull_request:
     paths:
-      - 'shockwaves/src/**'
-      - 'shockwaves/tests/**'
+      - 'clash-shockwaves/src/**'
+      - 'clash-shockwaves/tests/**'
       - '.github/workflows/haskell-fmt.yml'
   workflow_dispatch:
 
@@ -32,4 +32,4 @@ jobs:
             tests/**/*.hs
             
           # Change to the ./my-haskell-code/ directory before running this action.
-          working-directory: "./shockwaves"
+          working-directory: "./clash-shockwaves"

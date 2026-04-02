@@ -1,5 +1,5 @@
 packages:
-  shockwaves.cabal
+  clash-shockwaves.cabal
 
 package shockwaves
   haddock-options: --optghc=-DHADDOCK_ONLY
