@@ -232,7 +232,7 @@ impl Config {
                 .override_uns_spacer
                 .as_ref()
                 .or(self.global.override_uns_spacer.as_ref()),
-            NumberFormat::Sig => self
+            NumberFormat::Sig(_) => self
                 .local
                 .override_sig_spacer
                 .as_ref()

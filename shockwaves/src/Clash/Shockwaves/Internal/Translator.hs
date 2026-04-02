@@ -200,7 +200,7 @@ translateBinT trans@(Translator width variant) bin''@(BL _ _ blLength)
             NFOct -> Just (hexDigit <$> chunksOf 3 (extendBits 3), undefStyle, 11)
             NFHex -> Just (hexDigit <$> chunksOf 4 (extendBits 4), undefStyle, 11)
             NFUns -> (\i -> (show i, WSDefault, 11)) <$> decodeUns 0 bin'
-            NFSig -> (\i -> (show i, WSDefault, if i >= 0 then 11 else 0)) <$> decodeSig bin'
+            NFSig -> (\i -> (show i, WSDefault, if i >= 0 then 11 else 6)) <$> decodeSig bin'
 
         undefStyle = if 'x' `elem` bin' then (if warn then WSWarn else WSError) else WSDefault
         extendBits k = L.replicate (k - 1 - ((width + k - 1) `rem` k)) '0' <> bin'
