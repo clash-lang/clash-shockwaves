@@ -6,7 +6,3 @@ cradle:
       component: "shockwaves:test-vcd"
     - path: "./tests"
       component: "shockwaves:test-library"
-    - path: "./bin/Clashi.hs"
-      component: "shockwaves:exe:clashi"
-    - path: "./bin/Clash.hs"
-      component: "shockwaves:exe:clash"
