@@ -1,28 +1,27 @@
-
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE PolyKinds #-}
-{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE DataKinds #-}
-
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
 
 import Clash.Prelude
 import Clash.Shockwaves
+
 -- import Clash.Shockwaves.LUT
 import Clash.Shockwaves.Trace as T
 
 import Tests.Types
 
 import qualified Data.Text as Text
+
 -- import Data.Proxy
 -- import Data.Typeable
 import qualified Data.List as L
 
 import System.Directory
 
-createDomain vSystem{vName="Dom50", vPeriod=hzToPeriod 50e6}
-
+createDomain vSystem{vName = "Dom50", vPeriod = hzToPeriod 50e6}
 
 undef :: a
 undef = Clash.Prelude.undefined
@@ -49,19 +48,17 @@ tests =
   ]
 {- FOURMOLU_ENABLE -}
 
-
 type R = Unsigned 8
 type R' = Signal Dom50 R
 
-values :: (Waveform a,NFDataX a) => [a] -> String -> R' -> R'
+values :: (Waveform a, NFDataX a) => [a] -> String -> R' -> R'
 values vals name i = o
-  where
-    o = seq x i
-    x = T.traceSignal1 name $ fromList $ undef : (vals <> L.repeat undef)
+ where
+  o = seq x i
+  x = T.traceSignal1 name $ fromList $ undef : (vals <> L.repeat undef)
 
-test :: String -> (String -> R' -> R') -> (String,R'->R')
-test name f = (name,f name)
-
+test :: String -> (String -> R' -> R') -> (String, R' -> R')
+test name f = (name, f name)
 
 topEntity ::
   Clock Dom50 ->
@@ -73,23 +70,28 @@ topEntity = exposeClockResetEnable runTests
 
 runTests :: R' -> R'
 runTests i = L.foldl go i tests'
-  where
-    tests' = L.map snd tests
-    go i' f = f i'
-
-
+ where
+  tests' = L.map snd tests
+  go i' f = f i'
 
 main :: IO ()
 main = do
   putStrLn "start"
-  let out = topEntity (clockGen @Dom50) (resetGen @Dom50) enableGen $ T.traceSignal1 "helper" $ fromList $ L.repeat (3::Unsigned 8)
-  vcddata <- T.dumpVCD (0, 100) out ["helper"]--(L.map fst tests)
+  let out =
+        topEntity (clockGen @Dom50) (resetGen @Dom50) enableGen
+          $ T.traceSignal1 "helper"
+          $ fromList
+          $ L.repeat (3 :: Unsigned 8)
+  vcddata <- T.dumpVCD (0, 100) out ["helper"] -- (L.map fst tests)
   case vcddata of
     Left msg ->
-      error msg
-      putStrLn "finished with error"
-    Right (vcd,meta) ->
-      do createDirectoryIfMissing True "test/trace"
-         writeFile     "test/trace/waveform_typetest.vcd" $ Text.unpack vcd
-         writeFileJSON "test/trace/waveform_typetest.json" meta
-         putStrLn "finished"
+      error
+        msg
+        putStrLn
+        "finished with error"
+    Right (vcd, meta) ->
+      do
+        createDirectoryIfMissing True "test/trace"
+        writeFile "test/trace/waveform_typetest.vcd" $ Text.unpack vcd
+        writeFileJSON "test/trace/waveform_typetest.json" meta
+        putStrLn "finished"
