@@ -102,7 +102,7 @@ There are many translator variants available:
 - `{"N":{...}}`: an integer number.
   - `"f":<format>` `<format>` can be:
     - `"U"`: unsigned
-    - `"S"`: signed
+    - `{"S":<prec>}`: signed, with the precedence of negative numbers
     - `"H"`: hexadecimal
     - `"O"`: octal
     - `"B"`: binary
@@ -121,4 +121,3 @@ There are many translator variants available:
     - `{"L":<binary>}`: a literal binary string
     - `{"S":[[<from>,<to>],<bitpart>]}`: take the (half open) slice `(from,to)` from the output of `<bitpart>`
     - `{"C":[<bitpart>,...]}`: concatenate the output of the `<bitpart>`s
-

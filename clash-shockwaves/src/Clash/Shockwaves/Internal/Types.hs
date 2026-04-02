@@ -459,7 +459,7 @@ instance ToJSON WaveStyle where
     WSVar var dflt -> object ["V" .= [toJSON var, toJSON dflt]]
 instance ToJSON NumberFormat where
   toJSON = \case
-    NFSig -> "S"
+    NFSig -> object ["S" .= (6 :: Prec)]
     NFUns -> "U"
     NFHex -> "H"
     NFOct -> "O"
