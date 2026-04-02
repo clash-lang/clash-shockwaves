@@ -1,12 +1,12 @@
 cradle:
   cabal:
     - path: "./src"
-      component: "lib:shockwaves"
+      component: "lib:clash-shockwaves"
     - path: "./tests/vcd.hs"
-      component: "shockwaves:test-vcd"
+      component: "clash-shockwaves:test-vcd"
     - path: "./tests"
-      component: "shockwaves:test-library"
+      component: "clash-shockwaves:test-library"
     - path: "./bin/Clashi.hs"
-      component: "shockwaves:exe:clashi"
+      component: "clash-shockwaves:exe:clashi"
     - path: "./bin/Clash.hs"
-      component: "shockwaves:exe:clash"
+      component: "clash-shockwaves:exe:clash"
