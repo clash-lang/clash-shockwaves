@@ -20,7 +20,7 @@ jobs:
           cabal-version: '3.14.2.0'
       - name: Compile library to docs
         run: |
-          cd $GITHUB_WORKSPACE/shockwaves
+          cd $GITHUB_WORKSPACE/clash-shockwaves
           ghc --version
           cabal haddock --builddir ./hackage-dist --haddock-for-hackage --enable-doc --minimize-conflict-set
       - name: Upload Haddock docs
