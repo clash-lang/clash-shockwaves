@@ -128,22 +128,6 @@ library
     Clash.Shockwaves.Internal.TH.Waveform
   default-language: Haskell2010
 
--- Builds the executable 'clash', with shockwaves project in scope
-executable clash
-  main-is: bin/Clash.hs
-  default-language: Haskell2010
-  Build-Depends: base, clash-ghc, shockwaves
-  if !os(Windows)
-    ghc-options: -dynamic
-
--- Builds the executable 'clashi', with shockwaves project in scope
-executable clashi
-  main-is: bin/Clashi.hs
-  default-language: Haskell2010
-  if !os(Windows)
-    ghc-options: -dynamic
-  build-depends: base, clash-ghc, shockwaves
-
 -- Run a bunch of tests about translators and translations
 test-suite test-library
   import: common-options
