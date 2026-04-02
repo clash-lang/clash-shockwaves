@@ -1,17 +1,15 @@
-name: 'haskell-docs'
+
+name: 'haskell-test'
 
 on:
-  push:
-    paths:
-      - '.github/workflows/haskell-docs.yml'
   pull_request:
     paths:
-      - '.github/workflows/haskell-docs.yml'
+      - 'shockwaves/**'
+      - '.github/workflows/haskell-test.yml'
   workflow_dispatch:
 
-
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -21,14 +19,14 @@ jobs:
         with:
           ghc-version: '9.10.3'
           cabal-version: '3.14.2.0'
-      - name: Compile library to docs
+          stack-version: '3.7.1'
+      - name: Run tests
         run: |
           cd $GITHUB_WORKSPACE/shockwaves
-          ghc --version
-          cabal haddock --builddir ./hackage-dist --haddock-for-hackage --enable-doc --minimize-conflict-set
-      - name: Upload Haddock docs
+          stack test
+      - name: Upload VCD/JSON files
         uses: actions/upload-artifact@v4
         with:
-          name: Haddock docs for Hackage
-          path: shockwaves/hackage-dist/shockwaves*.tar.gz
+          name: VCD test output
+          path: shockwaves/test
           if-no-files-found: error
