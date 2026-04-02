@@ -5,9 +5,11 @@ on:
   push:
     paths:
       - 'surfer-shockwaves/**'
+      - '.github/workflows/surfer-fmt-lint.yml'
   pull_request:
     paths:
       - 'surfer-shockwaves/**'
+      - '.github/workflows/surfer-fmt-lint.yml'
   workflow_dispatch:
 
 env:

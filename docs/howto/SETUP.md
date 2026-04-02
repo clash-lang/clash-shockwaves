@@ -14,9 +14,10 @@ Add the repository `clash-lang/clash-shockwaves` to your Haskell project (instru
 ### GETTING AND INSTALLING THE SURFER EXTENSION
 
 To use Shockwaves, you need the Shockwaves translator extension WASM file.
-Precompiled version can be found on this github's Actions page, under `> surfer-release-compile`
-([here](https://github.com/clash-lang/clash-shockwaves/actions/workflows/surfer-release.yml)).
-Make sure to unzip the artefact - you need `surfer_shockwaves.wasm`.
+A precompiled version is included in every release,
+as well as on this github's Actions page, under `> surfer-release-compile`
+([here](https://github.com/clash-lang/clash-shockwaves/actions/workflows/surfer-release-compile.yml))
+(make sure to unzip the artifact - you need `surfer_shockwaves.wasm`).
 
 The `.wasm` file needs to be placed in Surfer's translators directory.
 This is `~/.local/share/surfer/translators` on Linux.

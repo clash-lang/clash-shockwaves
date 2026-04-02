@@ -1,12 +1,9 @@
-name: 'haskell-docs'
+name: '> haskell-release-docs'
 
 on:
   push:
-    paths:
-      - '.github/workflows/haskell-docs.yml'
-  pull_request:
-    paths:
-      - '.github/workflows/haskell-docs.yml'
+    tags:
+      - 'v**'
   workflow_dispatch:
 
 
@@ -23,12 +20,18 @@ jobs:
           cabal-version: '3.14.2.0'
       - name: Compile library to docs
         run: |
-          cd $GITHUB_WORKSPACE/clash-shockwaves
+          cd $GITHUB_WORKSPACE/shockwaves
           ghc --version
           cabal haddock --builddir ./hackage-dist --haddock-for-hackage --enable-doc --minimize-conflict-set
       - name: Upload Haddock docs
         uses: actions/upload-artifact@v4
         with:
           name: Haddock docs for Hackage
-          path: clash-shockwaves/hackage-dist/shockwaves*.tar.gz
+          path: shockwaves/hackage-dist/shockwaves*.tar.gz
           if-no-files-found: error
+      - name: Upload Haddock docs to release
+        uses: Roang-zero1/github-upload-release-artifacts-action@v2
+        with:
+          args: "shockwaves/hackage-dist/shockwaves*.tar.gz"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
