@@ -1,0 +1,33 @@
+
+name: '> surfer-release-compile'
+
+on:
+  push:
+    tags:
+      - 'v**'
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Compile extension
+        run: |
+          cd $GITHUB_WORKSPACE/surfer-shockwaves
+          rustup target add wasm32-unknown-unknown
+          ./compile.sh here
+      - name: Upload WASM file
+        uses: actions/upload-artifact@v4
+        with:
+          name: WASM Surfer extension
+          path: surfer-shockwaves/surfer_shockwaves.wasm
+          if-no-files-found: error
+      - name: Upload WASM file to release
+        uses: Roang-zero1/github-upload-release-artifacts-action@v2
+        with:
+          args: "surfer-shockwaves/surfer_shockwaves.wasm"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

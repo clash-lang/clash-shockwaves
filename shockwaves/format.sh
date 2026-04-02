@@ -1,1 +1,0 @@
-fourmolu -i src

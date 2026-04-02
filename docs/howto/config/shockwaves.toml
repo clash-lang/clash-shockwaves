@@ -1,8 +1,10 @@
 ######################################################
 ##          SHOCKWAVES CONFIGURATION FILE           ##
-## File must be called `shockwaves.toml` and placed ##
-## in either the configuration directory or the     ##
-## wavesource directory.                            ##
+## File must either be called `shockwaves.toml` and ##
+## be placed in the VCD file's directory, or        ##
+## `config.toml` and placed in Shockwaves' global   ##
+## config directory. See Surfer output for the file ##
+## paths looked at.                                 ##
 ######################################################
 
 

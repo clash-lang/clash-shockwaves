@@ -1,0 +1,4 @@
+ADDED
+Added an option to the file format and Surfer extension to set the precedence of negative numbers.
+This value is hardcoded in the Haskell library to be 6.
+[!62](https://github.com/clash-lang/clash-shockwaves/issues/62)

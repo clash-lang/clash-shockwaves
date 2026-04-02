@@ -1,5 +1,3 @@
-TODO: update
-
 ## How to add translations for difficult to unpack types
 Sometimes, you find yourself face to face with a type that cannot be represented
 properly using the standard translators - or the implementation is simply too much work.
@@ -33,20 +31,21 @@ and `translateL` to create the translation of a runtime value.
 
 ### CHANGING THE RENDER VALUE
 
-Since `WaveformLUT` uses `Show` by default, it's very easy to change the text of a label:
+Since `WaveformLUT` uses `Show` by default, it's very easy to change the text value of a signal:
 derive `Waveform` via `WaveformForLUT`, create a `WaveformLUT` instance,
-and simply overwrite `show`:
+and simply overwrite `Show`:
 
 ```hs
-idk some example TODO
-data MyData = ....
-  deriving (...,Generic)
-  deriving via (WaveformForLUT) instance Waveform
+data MyEither a b c = Left a | Middle b | Right c
+  deriving (BitPack,Generic,Typeable,NFDataX)
+  deriving Waveform via (WaveformForLUT (MyEither a b c))
 
-instance Show MyData
-  show x = ...
+instance (Show a, Show b, Show c) => Show (MyEither a b c)
+  showsPrec d (Left   x) = showParen (d > 10) $ showString "L " . showsPrec 11 x
+  showsPrec d (Middle x) = showParen (d > 10) $ showString "M " . showsPrec 11 x
+  showsPrec d (Right  x) = showParen (d > 10) $ showString "R " . showsPrec 11 x
 
-instance WaveformLUT MyData
+instance WaveformLUT MyEither
 ```
 
 If you want to change more, we need to first look at the default implementation
@@ -58,7 +57,7 @@ default translateL :: (Generic a, Show a, WaveformG (Rep a ()), PrecG (Rep a ())
 translateL = translateWith renderShow splitL
 ```
 
-`renderWith` splits the translation functionality into the creation of a render value,
+`translateWith` splits the translation functionality into the creation of a render value,
 and the creation of subsignals.
 
 `renderShow` is defined as `renderWith show (const WSNormal) precL`: to create a render value,
@@ -70,10 +69,11 @@ for the toplevel and constructor render values.
 
 Since a simple value with `WSNormal` and precedence `11` is fairly common (for floats, for example),
 there are a few special translation functions for these cases: `translateAtomWith`, `translateAtomShow`,
-`translateAtomSigWith`, `translateAtomSigShow`.
+`translateAtomSigWith`, `translateAtomSigShow`. The `*Sig*` variants are for
+signed numbers and take the operator precedence of the minus sign into account.
 
 
-Let's have a look at an example. Say we have a color value,
+Let's look at another example. Say we have a color value,
 and want to actually show the waveform in this color. We can
 then write a `WaveformLUT` implementation that assigns a
 custom color style to each value individually.
@@ -81,24 +81,25 @@ custom color style to each value individually.
 ```hs
 import Clash.Shockwaves.Style
 
-data MyColor = MyRGB Word8 Word8 Word8 deriving (...)
-  deriving via ....
+data MyRGB = MyRGB Int Int Int
+  deriving (Generic,Typeable,NFDataX,BitPack)
+  deriving Waveform via WaveformForLUT MyRGB
 
-instance Show MyColor where
-  show (MyRGB r g b) = "#" ++ hex (r `div` 16)
-                           ++ hex (r `rem` 16)
-                           ++ hex (g `div` 16)
-                           ++ hex (g `rem` 16)
-                           ++ hex (b `div` 16)
-                           ++ hex (b `rem` 16)
+hex n = showHex (n `div` 16) . showHex (n `rem` 16)
 
-colorToStyle (MyRGB r g b) = WSColor (RGB r g b)
+instance Show MyRGB where
+  show (MyRGB r g b) = ("#" <>) . hex r . hex g . hex b $ ""
 
-instance WaveformLUT MyColor where
+colorStyle (MyRGB r g b) =
+  WSColor $ RGB (fromIntegral r)
+                (fromIntegral g)
+                (fromIntegral b)
+
+instance WaveformLUT MyRGB where
   translateL = translateWith (renderWith show colorStyle (const 11)) splitL
-    where colorStyle (MyRGB r g b) = WSColor (RGB r g b)
 ```
 
+![Raindbowcolored signal with subsignals for the values of red, green and blue.](luts/simple.png)
 
 ### CHANGING THE SUBSIGNALS
 
@@ -108,7 +109,7 @@ To change the subsignals, you need two things:
 
 By default, this is implemented the same way as the default `Waveform` instances:
 using `Generic`, but this is not always what you want. Let's say that for our
-`MyColor` data type, we want to label the color channel subsignals, and
+`MyRGB` data type, we want to label the color channel subsignals, and
 display them in their own colors.
 
 First, we need to define the structure. Our data type has three subsignals, called
@@ -122,17 +123,23 @@ structureL = Structure
 ```
 
 Now we simply have to translate the values! It is extremely important that the
-translations match, or Surfer might crash! Though matching here means we have no
+translations match the structure, or Surfer might crash! Matching here means we have no
 signals that are not present int the structure - leaving _out_ signals is fine.
 
 ```hs
+import Clash.Shockwaves.Internal.Translator (applyStyle)
+```
+```hs
 translateL = translateWith (renderWith show colorStyle (const 11)) splitColor
   where
-    colorStyle (MyRGB r g b) = WSColor (RGB r g b)
-    splitColor (MyRGB r g b) =
-      [ ("red"  , applyStyle (WSColor (RGB r 0 0)) $ translate $ r)
-      , ("green", applyStyle (WSColor (RGB 0 g 0)) $ translate $ g)
-      , ("blue" , applyStyle (WSColor (RGB 0 0 b)) $ translate $ b) ]
+    splitColor _ (MyRGB r g b) =
+      [ ("red"  , applyStyle (WSColor (RGB r' 0  0 )) $ translate $ r)
+      , ("green", applyStyle (WSColor (RGB 0  g' 0 )) $ translate $ g)
+      , ("blue" , applyStyle (WSColor (RGB 0  0  b')) $ translate $ b) ]
+      where
+        r' = fromIntegral r
+        g' = fromIntegral g
+        b' = fromIntegral b
 ```
 
 > Note that `MyRGB undefined 0 0` will show up as `undefined`,
@@ -149,13 +156,13 @@ translateL = translateWith (renderWith show colorStyle (const 11)) splitColor
 >   , ("green", applyStyle (WSColor (RGB 0 g 0)) $ translate $ g)
 >   , ("blue" , applyStyle (WSColor (RGB 0 0 b)) $ translate $ b) ]
 >   where
->     r = (\(MyRGB r _ _) -> r) rgb
->     g = (\(MyRGB _ g _) -> g) rgb
->     b = (\(MyRGB _ _ b) -> b) rgb
+>     r = (\(MyRGB r _ _) -> fromIntegral r) rgb
+>     g = (\(MyRGB _ g _) -> fromIntegral g) rgb
+>     b = (\(MyRGB _ _ b) -> fromIntegral b) rgb
 > ```
 
 
 If we look at our type in the waveform viewer now, we see:
-[TODO:img]
+![Rainbowcolored signal with subsignals for red/green/blue displayed in their color channels.](luts/full/png)
 
 

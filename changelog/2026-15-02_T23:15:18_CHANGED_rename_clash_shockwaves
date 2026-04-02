@@ -1,0 +1,3 @@
+CHANGED
+Renamed the `shockwaves` library to `clash-shockwaves`, and `surfer_shockwaves` to `surfer-shockwaves` to match.
+[!70](https://github.com/clash-lang/clash-shockwaves/issues/70)

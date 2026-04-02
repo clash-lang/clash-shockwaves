@@ -1,29 +1,28 @@
 
-name: 'surfer-docs'
+name: 'surfer-compile'
 
 on:
   pull_request:
     paths:
       - 'surfer-shockwaves/**'
-      - '.github/workflows/surfer-docs.yml'
+      - '.github/workflows/surfer-compile.yml'
   workflow_dispatch:
 
-env:
-  RUSTFLAGS: "-Dwarnings"
 
 jobs:
-  docs:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Create docs
+      - name: Compile extension
         run: |
           cd $GITHUB_WORKSPACE/surfer-shockwaves
-          cargo doc --document-private-items --target-dir docs --no-deps
-      - name: Upload Rust docs
+          rustup target add wasm32-unknown-unknown
+          ./compile.sh here
+      - name: Upload WASM file
         uses: actions/upload-artifact@v4
         with:
-          name: Rust docs
-          path: surfer-shockwaves/docs/doc
+          name: WASM Surfer extension
+          path: surfer-shockwaves/surfer_shockwaves.wasm
           if-no-files-found: error
