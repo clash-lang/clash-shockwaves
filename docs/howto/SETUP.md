@@ -60,7 +60,7 @@ For Cabal, add the following to your `cabal.project` file:
 source-repository-package
   type: git
   location: https://github.com/clash-lang/clash-shockwaves.git
-  tag: 8bac2a6ee1dbc6bb5018bd749bb86a8b9663b020
+  tag: <commit name>
   subdir:
     clash-shockwaves
 ```
