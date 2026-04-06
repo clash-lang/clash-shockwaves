@@ -21,7 +21,7 @@ import Clash.Shockwaves.Trace
 import Clash.Shockwaves.Waveform hiding (tConst)
 
 {- | A type for displaying clock cycles.
-The styles can be configured through style variables @clk_rst@, @clk_a@ and @clk_b@.
+The styles can be configured through style variables @clk_pre@, @clk_a@ and @clk_b@.
 
 __NB__: This is not a traditional clock wave! The clock signal alternates
 /every cycle/, rather than going high and low /within/ a cycle.
@@ -61,21 +61,21 @@ tConst r = Translation r []
 
 -- the render values used
 clkI :: Render
-clkI = Just ("DISABLED", WSVar "clk_rst" WSHidden, 11)
+clkI = Just ("NOT RUNNING", WSVar "clk_pre" "#888", 11)
 clkA :: Render
 clkA = Just ("", WSVar "clk_a" "#fff", 11)
 clkB :: Render
 clkB = Just ("", WSVar "clk_b" "#83b", 11)
 
 rstOff :: Render
-rstOff = Just ("DEASSERTED", WSVar "reset_off" WSHidden, 11)
+rstOff = Just ("DEASSERTED", WSVar "reset_off" WSDefault, 11)
 rstOn :: Render
 rstOn = Just ("ASSERTED", WSVar "reset_on" WSWarn, 11)
 rstOn' :: Render
 rstOn' = Just ("RESET", WSVar "reset_on" WSWarn, 11)
 
 enOn :: Render
-enOn = Just ("ENABLED", WSVar "enable_on" WSHidden, 11)
+enOn = Just ("ENABLED", WSVar "enable_on" WSDefault, 11)
 enOff :: Render
 enOff = Just ("DISABLED", WSVar "enable_off" WSWarn, 11)
 
@@ -83,7 +83,7 @@ rstAndDis :: Render
 rstAndDis = Just ("DISABLED|RESET", WSVar "reset_on_enable_off" WSWarn, 11)
 
 {- | Control the styles of the clock wave through style variables
-@clk_rst@, @clk_a@ and @clk_b@.
+@clk_pre@, @clk_a@ and @clk_b@.
 -}
 instance Waveform ClockWave where
   translator =
@@ -154,7 +154,7 @@ clkSignal clk = s
 {- | Trace a clock signal. Keep in mind that the clock has to be evaluated in order for
 the signal to show up. Alternatively, use 'seq' to force evaluation.
 
-The styles can be configured through style variables @clk_rst@, @clk_a@ and @clk_b@.
+The styles can be configured through style variables @clk_pre@, @clk_a@ and @clk_b@.
 
 __NB__: This is not a traditional clock wave! The clock signal alternates
 /every cycle/, rather than going high and low /within/ a cycle.
