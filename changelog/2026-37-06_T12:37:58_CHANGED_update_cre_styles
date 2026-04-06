@@ -1,0 +1,4 @@
+CHANGED
+Changed CRE styles to be visible by default.
+Renamed style var `clk_rst` to `clk_pre`.
+[!78](https://github.com/clash-lang/clash-shockwaves/issues/78)
