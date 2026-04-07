@@ -2,8 +2,16 @@ cabal-version:       2.4
 name:                clash-shockwaves
 version:             1.0.0
 license:             BSD-2-Clause
+license-file:        LICENSE
+copyright:           Copyright © 2026 QBayLogic B.V.
 author:              Marijn Adriaanse <marijn@qbaylogic.com>
 maintainer:          QBayLogic B.V. <devops@qbaylogic.com>
+synopsis:            Typed waveforms for Clash
+description:         A library for creating typed waveforms.
+                     The library allows the user to specify what the waveforms
+                     for a data type should look like, and includes tools for
+                     storing this metadata in simulations.
+category:            Hardware
 
 flag large-tuples
   description:
@@ -126,6 +134,8 @@ library
     Clash.Shockwaves.Internal.Util
     Clash.Shockwaves.Internal.Trace.CRE
     Clash.Shockwaves.Internal.TH.Waveform
+  autogen-modules:
+    Paths_clash_shockwaves
   default-language: Haskell2010
 
 -- Run a bunch of tests about translators and translations
