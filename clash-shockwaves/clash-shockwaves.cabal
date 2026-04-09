@@ -6,11 +6,6 @@ license-file:        LICENSE
 copyright:           Copyright © 2026 QBayLogic B.V.
 author:              Marijn Adriaanse <marijn@qbaylogic.com>
 maintainer:          QBayLogic B.V. <devops@qbaylogic.com>
-synopsis:            Typed waveforms for Clash using the Surfer waveform viewer
-description:         A library for creating typed waveforms.
-                     The library allows the user to specify what the waveforms
-                     for a data type should look like, and includes tools for
-                     storing this metadata in simulations.
 category:            Hardware
 
 flag large-tuples
