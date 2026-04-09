@@ -44,7 +44,7 @@ newtype EnableWave = EnableWave Bool
   deriving (Generic, Typeable, BitPack, NFDataX)
 
 {- | A type for displaying clock, reset and enable signals.
-See 't:ClockWave', 't:ResetWave' and 't:EnableWave'.
+See t'ClockWave', t'ResetWave' and t'EnableWave'.
 It contains these signals as subsignals. The toplevel signal displays the clock
 during normal operation, reset when it is active, and enable when it is low.
 The combined style of both being active can be configured through the style
