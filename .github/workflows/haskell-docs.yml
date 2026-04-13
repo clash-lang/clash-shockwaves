@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/haskell-docs.yml'
+      - 'clash-shockwaves/**'
   workflow_dispatch:
 
 
@@ -29,7 +30,6 @@ jobs:
       - name: Compile library to docs
         if: '!cancelled()'
         run: |
-          cd $GITHUB_WORKSPACE/clash-shockwaves
           cabal haddock --builddir ./hackage-dist --haddock-for-hackage --enable-doc --minimize-conflict-set
       - name: Upload Haddock docs
         uses: actions/upload-artifact@v4
