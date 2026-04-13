@@ -22,10 +22,11 @@ jobs:
           ghc-version: '9.10.3'
           cabal-version: '3.14.2.0'
       - name: Check cabal file
+        continue-on-error: true
         run: |
           cd $GITHUB_WORKSPACE/clash-shockwaves
           ghc --version
-          cabal check || echo "::warning title=Cabal check failed::cabal check reported issues"
+          cabal check
       - name: Compile library to docs
         run: |
           cd $GITHUB_WORKSPACE/clash-shockwaves
