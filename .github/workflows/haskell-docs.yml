@@ -22,17 +22,18 @@ jobs:
           ghc-version: '9.10.3'
           cabal-version: '3.14.2.0'
       - name: Check cabal file
-        continue-on-error: true
         run: |
           cd $GITHUB_WORKSPACE/clash-shockwaves
           ghc --version
           cabal check
       - name: Compile library to docs
+        if: '!cancelled()'
         run: |
           cd $GITHUB_WORKSPACE/clash-shockwaves
           cabal haddock --builddir ./hackage-dist --haddock-for-hackage --enable-doc --minimize-conflict-set
       - name: Upload Haddock docs
         uses: actions/upload-artifact@v4
+        if: '!cancelled()'
         with:
           name: Haddock docs for Hackage
           path: clash-shockwaves/hackage-dist/clash-shockwaves*.tar.gz
