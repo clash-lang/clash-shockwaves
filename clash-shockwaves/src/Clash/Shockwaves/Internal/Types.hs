@@ -60,7 +60,7 @@ type TypeMap = Map TypeName Translator
 -- | Table of LUTs. Usually, the index is a type name, but this is not necessarily the case.
 type LUTMap = Map LUTName LUT
 
--- | A lookup table of 't:Translation's.
+-- | A lookup table of t'Translation's.
 type LUT = Map BitList Translation
 
 -- | The color type used in 'WaveStyle'.
@@ -156,7 +156,7 @@ and in the end, translatated and displayed in the waveform viewer.
 -}
 data TranslatorVariant
   = {- | Use the translator of a different type. Note that the width value of the
-    't:Translator's should match that of the target. The 't:TypeRef' parameter does not
+    t'Translator's should match that of the target. The t'TypeRef' parameter does not
     end up in the actual output, but is used to access functionality for the referenced
     type. Use @tRef@ to create this translator.
     -}
