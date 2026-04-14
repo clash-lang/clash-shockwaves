@@ -1,4 +1,4 @@
-name: '> haskell-release-docs'
+name: '> haskell-release-build'
 
 on:
   push:
@@ -27,16 +27,32 @@ jobs:
         if: '!cancelled()'
         run: |
           cabal haddock --builddir ./hackage-dist --haddock-for-hackage --enable-doc --minimize-conflict-set
+      - name: Make library tarball
+        run: |
+          cd $GITHUB_WORKSPACE/clash-shockwaves
+          cabal sdist
       - name: Upload Haddock docs
         uses: actions/upload-artifact@v4
         if: '!cancelled()'
         with:
-          name: Haddock docs for Hackage
+          name: Haddock docs
           path: clash-shockwaves/hackage-dist/clash-shockwaves*.tar.gz
+          if-no-files-found: error
+      - name: Upload Hackage tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tarball for Hackage
+          path: clash-shockwaves/dist-newstyle/sdist/clash-shockwaves*.tar.gz
           if-no-files-found: error
       - name: Upload Haddock docs to release
         uses: Roang-zero1/github-upload-release-artifacts-action@v2
         with:
           args: "clash-shockwaves/hackage-dist/clash-shockwaves*.tar.gz"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Hackage tarball to release
+        uses: Roang-zero1/github-upload-release-artifacts-action@v2
+        with:
+          args: "clash-shockwaves/dist-newstyle/sdist/clash-shockwaves*.tar.gz"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
