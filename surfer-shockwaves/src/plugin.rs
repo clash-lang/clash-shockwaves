@@ -161,6 +161,7 @@ pub fn set_wave_source(Json(wave_source): Json<Option<WaveSource>>) -> FnResult<
         .set_local_conf(conf.unwrap_or_else(Configuration::default));
     state.set_data(data.unwrap_or_else(Data::new));
     state.replace_wavestyles();
+    state.validate()
 
     Ok(())
 }

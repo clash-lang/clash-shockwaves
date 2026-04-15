@@ -9,6 +9,7 @@ use std::iter::zip;
 
 use crate::data::*;
 use crate::state::*;
+use crate::util::clog;
 
 lazy_static! {
     // Constant "default" value for missing translators
@@ -211,9 +212,10 @@ impl BitPart {
             }
 
             BitPart::Lit(s) => StringLike::Slice(s),
-            BitPart::Slice((a, b), bp) => match bp.from(bits) {
-                StringLike::Full(s) => StringLike::Full(s[*a..*b].to_string()),
-                StringLike::Slice(s) => StringLike::Slice(&s[*a..*b]),
+            BitPart::Slice((from, to), bp) => match bp.from(bits) {
+                StringLike::Full(s) if s.len() as u32 >= b => StringLike::Full(s[*from..*to].to_string()),
+                StringLike::Slice(s) if s.len() as u32 >= b => StringLike::Slice(&s[*from..*to]),
+                _ => StringLike::Full("x".repeat(*to-*from))
             },
         }
     }
@@ -470,11 +472,8 @@ impl State {
             }
             /* Sum translators */
             TranslatorVariant::Sum(translators) => {
-                if translators.is_empty() {
-                    return error("{no subtranslators}");
-                }
                 let n = translators.len();
-                let bits = (usize::BITS - (n - 1).leading_zeros()) as usize;
+                let bits = n.clog() as usize;
                 let variant = if bits > 0 {
                     usize::from_str_radix(&value[..bits], 2)
                 } else {
