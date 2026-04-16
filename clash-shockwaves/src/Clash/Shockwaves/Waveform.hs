@@ -14,9 +14,9 @@ module Clash.Shockwaves.Waveform (
   Waveform (translator, styles, width),
   translate,
   translateBin,
-  hasLut,
+  hasActiveLut,
   translateBinT,
-  hasLutT,
+  hasActiveLutT,
 
   -- * Translations
   Translation (..),

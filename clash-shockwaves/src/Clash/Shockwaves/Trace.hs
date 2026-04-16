@@ -244,7 +244,7 @@ traceSignal# maps period traceName signal =
           ( encode (typeRep @a)
           , period
           , width
-          , if hasLut @a then map ((\f -> maybe id (const $ foldl1 (.) f) $ uncons f) . addValue) $ sample signal else repeat id
+          , if hasActiveLut @a then map ((\f -> maybe id (const $ foldl1 (.) f) $ uncons f) . addValue) $ sample signal else repeat id
           , mkTrace signal)
           traceMap }
     in

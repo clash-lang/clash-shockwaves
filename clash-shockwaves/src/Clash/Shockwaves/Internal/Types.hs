@@ -164,7 +164,7 @@ data TranslatorVariant
   | {- | A reference to a lookup table. Implement @Waveform@ through @WaveformLUT@
     to stably use this functionality.
     -}
-    TLut LUTName TypeRef
+    TLut LUTName (Maybe LUT) TypeRef
   | {- | Select one translator to be used based on the first bits of the binary
     representation. Translate the rest of the bits using the selected translator.
     To be exact, if /k/ translators are provided, /ceil(log2(k))/ bits will be
@@ -398,7 +398,7 @@ instance ToJSON Translator where
                 ]
           ]
       TConst t -> object ["C" .= toJSON t]
-      TLut lut TypeRef{structureRef} -> object ["L" .= [toJSON lut, toJSON structureRef]]
+      TLut lut _ TypeRef{structureRef} -> object ["L" .= [toJSON lut, toJSON structureRef]]
       TNumber{format, spacer, prefix, warn} ->
         object
           [ "N"

@@ -19,7 +19,7 @@ import Data.Bifunctor (first)
 import qualified Data.List as L
 import Data.List.Extra (chunksOf)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Tuple.Extra (second)
 import Math.NumberTheory.Logarithms (intLog2)
 import Numeric (showHex)
@@ -119,7 +119,7 @@ translateFromSubs (Translator _ translator) subs = case translator of
     _ ->
       errorX
         "Ref should only appear as a nested type that is translated through split; for referenced types, modify Waveform.translate"
-  TLut _ _ -> case subs of
+  TLut _ _ _ -> case subs of
     [("", t)] -> t
     _ ->
       errorX
@@ -189,7 +189,7 @@ translateBinT trans@(Translator width variant) bin''@(BL _ _ blLength)
   | width <= blLength
   , bin <- BL.take width bin'' = case variant of
       TRef _ TypeRef{translateBinRef} -> translateBinRef bin
-      TLut _ TypeRef{translateBinRef} -> translateBinRef bin
+      TLut _ _ TypeRef{translateBinRef} -> translateBinRef bin
       TNumber{format, spacer, prefix, warn} -> Translation (if isJust render then render else Just ("undefined", WSError, 11)) []
        where
         bin' = show bin
@@ -280,7 +280,7 @@ structureT (Translator _ t) = case t of
   TAdvancedSum{rangeTrans, defTrans} -> structureT $ Translator 0 $ TSum (defTrans : L.map snd rangeTrans)
   TProduct{subs} -> Structure $ L.map (second structureT) subs
   TConst trans -> fromTranslation trans
-  TLut _ TypeRef{structureRef} -> structureRef
+  TLut _ _ TypeRef{structureRef} -> structureRef
   TNumber{} -> Structure []
   TArray{sub, len} ->
     Structure
@@ -329,7 +329,7 @@ foldTranslator :: (Translator -> a) -> ([a] -> b) -> Translator -> b
 foldTranslator m f (Translator _ variant) = case variant of
   -- leaf translators
   TRef _ TypeRef{translatorRef}     -> f [m translatorRef]
-  TLut _ _                          -> f []
+  TLut _ _ _                        -> f []
   TConst _                          -> f []
   TNumber{}                         -> f []
 
@@ -347,9 +347,9 @@ foldTranslator m f (Translator _ variant) = case variant of
 {- FOURMOLU_ENABLE -}
 
 -- | Test if there is a LUT translator in a translator (following references).
-hasLutT :: Translator -> Bool
-hasLutT (Translator _ (TLut _ _)) = True
-hasLutT t = foldTranslator hasLutT or t
+hasActiveLutT :: Translator -> Bool
+hasActiveLutT (Translator _ (TLut _ lut _)) = isNothing lut
+hasActiveLutT t = foldTranslator hasActiveLutT or t
 
 {- | Add all type references in a translator structure to a type map.
 To add the types in a type, run this function on a reference to said type.
@@ -369,11 +369,12 @@ returns a list of functions to add all LUT values to the LUT maps.
 -}
 addValueT :: Translator -> BitList -> [LUTMap -> LUTMap]
 addValueT translator@(Translator _ variant) =
-  if hasLutT translator
+  if hasActiveLutT translator
     then case variant of
       -- leaf translators
       TRef _ TypeRef{translatorRef} -> addValueT translatorRef
-      TLut name TypeRef{translateBinRef} -> go
+      TLut _ (Just _) _ -> const []
+      TLut name Nothing TypeRef{translateBinRef} -> go
        where
         go bin =
           let translation = safeValOr (errorT "error") (translateBinRef bin)

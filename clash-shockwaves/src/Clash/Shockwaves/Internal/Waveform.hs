@@ -28,6 +28,7 @@ import Clash.Shockwaves.Internal.Util
 
 import Data.Char (isAlpha)
 import qualified Data.List as L
+import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Proxy
 import Data.Typeable
@@ -45,6 +46,7 @@ import Clash.Num.Zeroing (Zeroing)
 import Data.Complex (Complex)
 import Data.Functor.Identity (Identity)
 import Data.Ord (Down)
+import Data.Bifunctor (first)
 
 {- FOURMOLU_DISABLE -}
 #ifndef MAX_TUPLE_SIZE
@@ -123,14 +125,35 @@ tRef (_ :: Proxy a) =
 tConst :: Render -> Translator
 tConst r = Translator 0 $ TConst $ Translation r []
 
+-- | Create a LUT translator for a type, using either the static LUT or the translation
+-- function specified in 'WaveformLUT'
+tLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> Maybe LUT -> Translator
+tLut p l = case l of
+  Just lut -> tStaticLut p lut
+  Nothing -> tActiveLut p
+
 -- | Create a LUT translator for a type, using the translation function of 'WaveformLUT'.
-tLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> Translator
-tLut _ =
+tActiveLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> Translator
+tActiveLut _ =
   Translator (width @a)
     $ TLut
       (typeName @a)
+      Nothing
       TypeRef
         { translateBinRef = translateL @a . BL.binUnpack
+        , structureRef = structureL @a
+        , translatorRef = translator @a
+        }
+
+-- | Create a LUT translator for a type, using the static LUT in 'WaveformLUT'.
+tStaticLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> LUT -> Translator
+tStaticLut _ lut =
+  Translator (width @a)
+    $ TLut
+      (typeName @a)
+      (Just lut)
+      TypeRef
+        { translateBinRef = translateStaticL @a . BL.binUnpack
         , structureRef = structureL @a
         , translatorRef = translator @a
         }
@@ -199,8 +222,8 @@ styles' :: forall a. (Waveform a) => [WaveStyle]
 styles' = styles @a <> L.repeat WSDefault
 
 -- | Check if the type requires LUTs for translation.
-hasLut :: forall a. (Waveform a) => Bool
-hasLut = hasLutT $ translator @a
+hasActiveLut :: forall a. (Waveform a) => Bool
+hasActiveLut = hasActiveLutT $ translator @a
 
 -- | Return the structure of a type.
 structure :: forall a. (Waveform a) => Structure
@@ -484,6 +507,26 @@ class (Typeable a, BitPack a) => WaveformLUT a where
     (Generic a, Show a, WaveformG (Rep a ()), PrecG (Rep a ())) => a -> Translation
   translateL = translateWith renderShow splitL
 
+  -- | A static lookup table.
+  -- To use a static lookup table rather than one created from the values found during simulation,
+  -- set this to a list of values and their translations. Set 'translateL' and 'structureL' to 'undefined'.
+  staticL :: Maybe [(a,Translation)]
+  staticL = Nothing
+
+
+-- | Return the static LUT of a type with 'WaveformLUT'
+staticLutL :: forall a. (WaveformLUT a) => Maybe LUT
+staticLutL = (M.fromList . L.map (first BL.binPack)) <$> staticL @a
+
+-- | Translate a value from a type with a static LUT
+translateStaticL :: forall a. (Waveform a, WaveformLUT a) => a -> Translation
+translateStaticL x = case staticLutL @a of
+  Just lut -> case M.lookup (BL.binPack x) lut of
+    Just t -> t
+    Nothing -> "translation not found"
+  Nothing -> error "cannot translate type; it has no static LUT" -- TODO rewrite using maybe function instead of case
+
+
 -- | Make sure a t'Translation' is fully defined. If not, return a t'Translation' with @"undefined"@.
 safeTranslation :: Translation -> Translation
 safeTranslation = safeValOr (errorT "undefined")
@@ -570,7 +613,7 @@ instance
   where
   typeName = typeNameP (Proxy @a)
 
-  translator = tLut (Proxy @a)
+  translator = tLut (Proxy @a) (staticLutL @a)
 
 ----------------------------------------------- PREC ----------------------------------
 
