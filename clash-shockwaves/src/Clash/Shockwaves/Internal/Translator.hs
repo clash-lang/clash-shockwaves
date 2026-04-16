@@ -15,6 +15,7 @@ import qualified Clash.Shockwaves.BitList as BL
 import Clash.Shockwaves.Internal.BitList
 import Clash.Shockwaves.Internal.Types
 import Clash.Shockwaves.Internal.Util
+
 import Data.Bifunctor (first)
 import qualified Data.List as L
 import Data.List.Extra (chunksOf)
@@ -347,9 +348,9 @@ foldTranslator m f (Translator _ variant) = case variant of
 {- FOURMOLU_ENABLE -}
 
 -- | Test if there is a LUT translator in a translator (following references).
-hasActiveLutT :: Translator -> Bool
-hasActiveLutT (Translator _ (TLut _ lut _)) = isNothing lut
-hasActiveLutT t = foldTranslator hasActiveLutT or t
+hasGeneratedLutT :: Translator -> Bool
+hasGeneratedLutT (Translator _ (TLut _ lut _)) = isNothing lut
+hasGeneratedLutT t = foldTranslator hasGeneratedLutT or t
 
 {- | Add all type references in a translator structure to a type map.
 To add the types in a type, run this function on a reference to said type.
@@ -369,7 +370,7 @@ returns a list of functions to add all LUT values to the LUT maps.
 -}
 addValueT :: Translator -> BitList -> [LUTMap -> LUTMap]
 addValueT translator@(Translator _ variant) =
-  if hasActiveLutT translator
+  if hasGeneratedLutT translator
     then case variant of
       -- leaf translators
       TRef _ TypeRef{translatorRef} -> addValueT translatorRef
@@ -426,3 +427,10 @@ addValueT translator@(Translator _ variant) =
         fSub = addValueT sub
         go bin = fSub $ changeBits bits bin
     else const []
+
+
+-- | Get all static LUTs in a Translator, not following references.
+getStaticLuts :: Translator -> [(String,LUT)]
+getStaticLuts (Translator _ (TRef _ _)) = []
+getStaticLuts (Translator _ (TLut name l _)) = fromMaybe [] $ (\lut -> [(name,lut)]) <$> l
+getStaticLuts t = foldTranslator getStaticLuts L.concat t

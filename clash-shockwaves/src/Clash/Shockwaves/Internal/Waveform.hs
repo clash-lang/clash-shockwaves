@@ -130,11 +130,11 @@ tConst r = Translator 0 $ TConst $ Translation r []
 tLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> Maybe LUT -> Translator
 tLut p l = case l of
   Just lut -> tStaticLut p lut
-  Nothing -> tActiveLut p
+  Nothing -> tGeneratedLut p
 
 -- | Create a LUT translator for a type, using the translation function of 'WaveformLUT'.
-tActiveLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> Translator
-tActiveLut _ =
+tGeneratedLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> Translator
+tGeneratedLut _ =
   Translator (width @a)
     $ TLut
       (typeName @a)
@@ -222,8 +222,8 @@ styles' :: forall a. (Waveform a) => [WaveStyle]
 styles' = styles @a <> L.repeat WSDefault
 
 -- | Check if the type requires LUTs for translation.
-hasActiveLut :: forall a. (Waveform a) => Bool
-hasActiveLut = hasActiveLutT $ translator @a
+hasGeneratedLut :: forall a. (Waveform a) => Bool
+hasGeneratedLut = hasGeneratedLutT $ translator @a
 
 -- | Return the structure of a type.
 structure :: forall a. (Waveform a) => Structure
@@ -516,14 +516,18 @@ class (Typeable a, BitPack a) => WaveformLUT a where
 
 -- | Return the static LUT of a type with 'WaveformLUT'
 staticLutL :: forall a. (WaveformLUT a) => Maybe LUT
-staticLutL = (M.fromList . L.map (first BL.binPack)) <$> staticL @a
+staticLutL = staticLut <$> staticL @a
+
+-- | Turn a list of (value,translation) pairs into a LUT
+staticLut :: (BitPack a) => [(a, Translation)] -> LUT
+staticLut = M.fromList . L.map (first BL.binPack)
 
 -- | Translate a value from a type with a static LUT
 translateStaticL :: forall a. (Waveform a, WaveformLUT a) => a -> Translation
 translateStaticL x = case staticLutL @a of
   Just lut -> case M.lookup (BL.binPack x) lut of
     Just t -> t
-    Nothing -> "translation not found"
+    Nothing -> errorT "{value missing from LUT}"
   Nothing -> error "cannot translate type; it has no static LUT" -- TODO rewrite using maybe function instead of case
 
 
