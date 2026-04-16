@@ -1,0 +1,274 @@
+//! Module for validating translator structures.
+//! This should check for everything that is obviously wrong and shouldn't need
+//! to be checked while translating.
+//! If critical errors (that would cause the extension to panic) are found,
+//! the translator is replaced by a constant translator.
+//! Also, errors/warnings are printed if the translator widths don't match up
+//! in a way that does not cause a crash, but might be incorrect.
+
+use std::collections::HashMap;
+
+use extism_pdk::{error, warn};
+
+use crate::data::*;
+use crate::state::State;
+use crate::util::CLog;
+
+impl State {
+    pub fn verify(&mut self) {
+        self.data.verify()
+    }
+}
+
+impl Data {
+    pub fn verify(&mut self) {
+        let translators = self
+            .types
+            .iter()
+            .map(|(k, v)| (k.clone(), v.width))
+            .collect::<HashMap<String, u32>>();
+
+        self.types
+            .iter_mut()
+            .for_each(|(source, translator)| translator.verify(source, &translators))
+    }
+}
+
+impl Translator {
+    fn verify(&mut self, source: &str, translators: &HashMap<String, u32>) {
+        self.trans.verify(self.width, source, translators)
+    }
+}
+
+impl TranslatorVariant {
+    /// Check Translator variant for errors.
+    /// Translators that would cause cause the extension to panic are replaced
+    /// by a Const translator with the error message.
+    /// Other (potential) problems are reported.
+    pub fn verify(&mut self, width: u32, source: &str, translators: &HashMap<String, u32>) {
+        if let Err(e) = self.verify2(width, source, translators) {
+            error!("Critical error in translator for {source}: {e}");
+            *self = TranslatorVariant::Const(Translation(
+                Some(("{".to_owned() + e + "}", WaveStyle::Error, ATOMIC)),
+                vec![],
+            ));
+        }
+    }
+    fn verify2(
+        &mut self,
+        width: u32,
+        source: &str,
+        translators: &HashMap<String, u32>,
+    ) -> Result<(), &str> {
+        match self {
+            TranslatorVariant::Ref(s) => match translators.get(s) {
+                Some(w) if *w < width => error!(
+                    "Ref translator for {source:?} has insufficient bits to supply referenced translator"
+                ),
+                Some(w) if *w > width => warn!("Ref translator for {source:?} has unused bits"),
+                Some(_) => {}
+                None => error!("Ref translator for {source:?} refers to unknown translator {s:?}"),
+            },
+            TranslatorVariant::Sum(subs) => {
+                if subs.is_empty() {
+                    return Err("Sum translator has no subtranslators");
+                }
+                let tag = subs.len().clog();
+                if tag > width {
+                    return Err("Sum translator has insufficient bits to select a translator");
+                }
+
+                let rest = subs.iter().map(|s| s.width).max().unwrap();
+                if rest > tag {
+                    error!(
+                        "Sum translator for {source:?} has insufficient bits to supply subtranslator"
+                    );
+                } else if rest < tag {
+                    warn!("Sum translator for {source:?} has unused bits");
+                }
+
+                subs.iter_mut().for_each(|s| s.verify(source, translators));
+            }
+            TranslatorVariant::AdvancedSum {
+                index: (from, to),
+                default_translator,
+                range_translators,
+            } => {
+                if to < from {
+                    return Err("AdvancedSum translator index slice of negative length");
+                }
+                if *to - *from > 128 {
+                    return Err("AdvancedSum translator index slice uses more than 128 bits");
+                }
+                if *to as u32 > width {
+                    return Err("AdvancedSum translator has insufficient bits for index slice");
+                }
+
+                for ((a, b), _) in range_translators.iter() {
+                    if b <= a {
+                        warn!("AdvancedSum translator for {source} has empty range ({a},{b})");
+                    }
+                    if a.clog() > width {
+                        warn!(
+                            "AdvancedSum translator for {source} has range with unreachable lower bound {a}"
+                        );
+                    }
+                }
+
+                default_translator.verify(source, translators);
+                range_translators
+                    .iter_mut()
+                    .for_each(|(_, s)| s.verify(source, translators));
+            }
+            TranslatorVariant::Product { labels, subs, .. } => {
+                if !labels.is_empty() && labels.len() != subs.len() {
+                    return Err("Product translator labels field has invalid length");
+                }
+
+                let bits: u32 = subs.iter().map(|(_, s)| s.width).sum();
+                if bits > width {
+                    return Err("Product translator has insufficient bits to supply all fields");
+                } else if bits < width {
+                    warn!("Product translator for {source:?} has unused bits");
+                }
+
+                subs.iter_mut()
+                    .for_each(|(_, s)| s.verify(source, translators));
+            }
+            TranslatorVariant::AdvancedProduct {
+                slice_translators,
+                hierarchy,
+                value_parts,
+                ..
+            } => {
+                for ((from, to), sub) in slice_translators.iter() {
+                    if *to as u32 > width {
+                        return Err(
+                            "AdvancedProduct translator has insufficient bits for subtranslator slice",
+                        );
+                    }
+                    if to < from {
+                        return Err("AdvancedProduct subtranslator slice index of negative length");
+                    }
+                    if (*to - *from) as u32 != sub.width {
+                        warn!(
+                            "AdvancedProduct subtranslator slice does not match subtranslator width"
+                        )
+                    }
+                }
+
+                for (_, i) in hierarchy {
+                    if *i >= slice_translators.len() {
+                        return Err("AdvancedProduct hierarchy has invalid translator index");
+                    }
+                }
+
+                for vp in value_parts {
+                    if let ValuePart::Ref(i, _) = vp
+                        && *i >= slice_translators.len()
+                    {
+                        return Err("AdvancedProduct ValuePart Ref has invalid translator index");
+                    }
+                }
+
+                slice_translators
+                    .iter_mut()
+                    .for_each(|(_, s)| s.verify(source, translators))
+            }
+            TranslatorVariant::Const(..) => { /* cannot fail */ }
+            TranslatorVariant::Lut(..) => {
+                // Properly checking the LUT would be difficult (take a lot of calculations)
+                // Luts don't cause errors unless the Structure misses signals used in the values
+                // The only way to verify this is to go over all stored values, which is a tad
+                // much.
+            }
+            TranslatorVariant::Number { spacer, .. } => {
+                if width == 0 {
+                    warn!("Number translator for {source:?} has 0 bits");
+                }
+                match spacer {
+                    Some((0, s)) if !s.is_empty() => warn!("Number spacer has unused value {s:?}"),
+                    Some((n, s)) if s.is_empty() && *n > 0 => {
+                        warn!("Number spacer empty but nonzero")
+                    }
+                    _ => {}
+                }
+            }
+            TranslatorVariant::Array { sub, len, .. } => {
+                if sub.width * *len > width {
+                    return Err("Array translator has insufficient bits to supply all fields");
+                }
+                if sub.width * *len < width {
+                    warn!("Array translator for {source:?} has unused bits");
+                }
+
+                sub.verify(source, translators)
+            }
+            TranslatorVariant::Styled(_, sub) => {
+                if sub.width > width {
+                    error!(
+                        "Styled translator for {source:?} has insufficient bits to supply subtranslator"
+                    );
+                } else if sub.width < width {
+                    warn!("Styled translator for {source:?} has unused bits")
+                }
+
+                sub.verify(source, translators)
+            }
+            TranslatorVariant::Duplicate(_, sub) => {
+                if sub.width > width {
+                    error!(
+                        "Duplicate translator for {source:?} has insufficient bits to supply subtranslator"
+                    );
+                } else if sub.width < width {
+                    warn!("Duplicate translator for {source:?} has unused bits")
+                }
+
+                sub.verify(source, translators)
+            }
+            TranslatorVariant::ChangeBits { sub, bits } => {
+                let b = bits.verify(width, source);
+                match b {
+                    Some(w) if w < sub.width => error!(
+                        "ChangeBits translator for {source:?} produces insufficient bits for subtranslator"
+                    ),
+                    Some(w) if w > sub.width => {
+                        warn!("ChangeBits translator for {source:?} produces unused bits")
+                    }
+                    Some(_) => {}
+                    None => warn!(
+                        "ChangeBits translator for {source:?} may produces potentially variable number of bits"
+                    ),
+                }
+
+                sub.verify(source, translators)
+            }
+        }
+        Ok(())
+    }
+}
+
+impl BitPart {
+    /// verify a BitPart, returning the bitsize if known
+    pub fn verify(&self, inputsize: u32, source: &str) -> Option<u32> {
+        match self {
+            BitPart::In => Some(inputsize),
+            BitPart::Lit(l) => Some(l.len() as u32),
+            BitPart::Concat(subs) => subs
+                .iter()
+                .map(|s| s.verify(inputsize, source))
+                .collect::<Option<Vec<u32>>>()
+                .map(|v| v.iter().sum()),
+            BitPart::Slice((from, to), sub) => {
+                match sub.verify(inputsize, source) {
+                    Some(w) if w < *to as u32 => error!(
+                        "BitPart Slice in ChangeBits translator for {source:?} has insufficient bits to slice"
+                    ),
+                    Some(_) => {}
+                    None => {}
+                }
+                Some((*to - *from) as u32)
+            }
+        }
+    }
+}

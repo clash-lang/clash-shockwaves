@@ -9,7 +9,7 @@ use std::iter::zip;
 
 use crate::data::*;
 use crate::state::*;
-use crate::util::clog;
+use crate::util::CLog;
 
 lazy_static! {
     // Constant "default" value for missing translators
@@ -213,9 +213,11 @@ impl BitPart {
 
             BitPart::Lit(s) => StringLike::Slice(s),
             BitPart::Slice((from, to), bp) => match bp.from(bits) {
-                StringLike::Full(s) if s.len() as u32 >= b => StringLike::Full(s[*from..*to].to_string()),
-                StringLike::Slice(s) if s.len() as u32 >= b => StringLike::Slice(&s[*from..*to]),
-                _ => StringLike::Full("x".repeat(*to-*from))
+                StringLike::Full(s) if s.len() >= *to => {
+                    StringLike::Full(s[*from..*to].to_string())
+                }
+                StringLike::Slice(s) if s.len() >= *to => StringLike::Slice(&s[*from..*to]),
+                _ => StringLike::Full("x".repeat(*to - *from)),
             },
         }
     }
