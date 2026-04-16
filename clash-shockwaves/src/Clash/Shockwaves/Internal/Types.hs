@@ -464,3 +464,25 @@ instance ToJSON NumberFormat where
     NFHex -> "H"
     NFOct -> "O"
     NFBin -> "B"
+
+-- | Merge duplicate subsignals in a list of subsignal structures.
+mergeDuplicateSubsignals :: [(SubSignal, Structure)] -> [(SubSignal, Structure)]
+mergeDuplicateSubsignals = L.reverse . L.foldr addSignal [] . L.reverse
+ where
+  addSignal ::
+    (SubSignal, Structure) -> [(SubSignal, Structure)] -> [(SubSignal, Structure)]
+  addSignal sig signals = case L.mapAccumL mergeOrPass (Just sig) signals of
+    (Nothing, signals') -> signals'
+    (Just sig', signals') -> sig' : signals'
+   where
+    mergeOrPass ::
+      Maybe (SubSignal, Structure) ->
+      (SubSignal, Structure) ->
+      (Maybe (SubSignal, Structure), (SubSignal, Structure))
+    mergeOrPass (Just (name, Structure s)) (name', Structure s')
+      | name == name' =
+          (Nothing, (name, Structure $ mergeDuplicateSubsignals (s' <> s)))
+    mergeOrPass newsig oldsig = (newsig, oldsig)
+
+instance Semigroup Structure where
+  (<>) (Structure a) (Structure b) = Structure $ mergeDuplicateSubsignals $ a <> b

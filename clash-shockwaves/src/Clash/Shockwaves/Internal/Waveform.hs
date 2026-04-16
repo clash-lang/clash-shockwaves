@@ -155,7 +155,7 @@ tStaticLut _ lut =
       (Just lut)
       TypeRef
         { translateBinRef = translateStaticL @a . BL.binUnpack
-        , structureRef = structureL @a
+        , structureRef = L.foldl1 (<>) $ L.map fromTranslation $ M.elems lut
         , translatorRef = translator @a
         }
 
@@ -841,8 +841,14 @@ instance (BitPack Char) => WaveformLUT Char where
 deriving via WaveformForLUT Char instance (BitPack Char) => Waveform Char
 
 instance WaveformLUT Bit where
-  structureL = Structure []
-  translateL = translateAtomShow
+  staticL =
+    Just
+      [ (high, Translation (Just ("1", "$bit_high", 11)) [])
+      , (low, Translation (Just ("0", "$bit_low", 11)) [])
+      , (undefined, Translation (Just ("x", WSWarn, 11)) [])
+      ]
+  structureL = undefined -- Structure []
+  translateL = undefined -- translateAtomShow
 deriving via WaveformForLUT Bit instance Waveform Bit
 
 instance WaveformLUT Double where
