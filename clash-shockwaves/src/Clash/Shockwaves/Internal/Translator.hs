@@ -428,9 +428,8 @@ addValueT translator@(Translator _ variant) =
         go bin = fSub $ changeBits bits bin
     else const []
 
-
 -- | Get all static LUTs in a Translator, not following references.
-getStaticLuts :: Translator -> [(String,LUT)]
+getStaticLuts :: Translator -> [(String, LUT)]
 getStaticLuts (Translator _ (TRef _ _)) = []
-getStaticLuts (Translator _ (TLut name l _)) = fromMaybe [] $ (\lut -> [(name,lut)]) <$> l
+getStaticLuts (Translator _ (TLut name l _)) = fromMaybe [] $ (\lut -> [(name, lut)]) <$> l
 getStaticLuts t = foldTranslator getStaticLuts L.concat t
