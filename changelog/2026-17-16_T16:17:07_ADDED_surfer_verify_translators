@@ -1,0 +1,4 @@
+ADDED
+Surfer translator now verifies that there are no errors in the translators that would cause crashes.
+It also warns of weird translator widths.
+[#33](https://github.com/clash-lang/clash-shockwaves/issues/33)
