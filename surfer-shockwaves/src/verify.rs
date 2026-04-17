@@ -79,11 +79,11 @@ impl TranslatorVariant {
                 }
 
                 let rest = subs.iter().map(|s| s.width).max().unwrap();
-                if rest > tag {
+                if rest > width - tag {
                     error!(
                         "Sum translator for {source:?} has insufficient bits to supply subtranslator"
                     );
-                } else if rest < tag {
+                } else if rest < width - tag {
                     warn!("Sum translator for {source:?} has unused bits");
                 }
 
@@ -108,7 +108,7 @@ impl TranslatorVariant {
                     if b <= a {
                         warn!("AdvancedSum translator for {source} has empty range ({a},{b})");
                     }
-                    if a.clog() > width {
+                    if (a+1).clog() > width {
                         warn!(
                             "AdvancedSum translator for {source} has range with unreachable lower bound {a}"
                         );
