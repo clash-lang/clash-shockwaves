@@ -1,10 +1,13 @@
 ## How to add translations for difficult to unpack types
 Sometimes, you find yourself face to face with a type that cannot be represented
 properly using the standard translators - or the implementation is simply too much work.
-In that case, you make consider using _lookup tables_.
+In that case, you may consider using _lookup tables_.
 
-When using LUTs, Shockwaves translates all values of types that use LUTs during simulation,
-and stores these translations along with the translators. In the waveform viewer, these are
+When using LUTs, Shockwaves stores a table of translations rather than a description
+of how to create a translation.
+Typically, Shockwaves translates all values of types that use LUTs during simulation
+and stores these translations along with the translators, but it is also possible to
+pre-populate the translation table. In the waveform viewer, translations are
 simply retreived using the binary representations in the VCD file.
 
 Since using LUTs is generally much simpler than doing a full `Waveform` implementation,
@@ -12,12 +15,17 @@ Shockwaves provides the `WaveformLUT` class that has some functions for making t
 easier. To connect the instance of `Waveform` to that of `WaveformLUT`, it can be derived
 via `WaveformForLUT`.
 
-By default, `WaveformLUT` uses the standard `Generic`-based functions to create subsignals,
-but uses `Show` to determine the value.
+There are two ways to use `WaveformLUT`: you either create a static LUT, providing all
+translations yourself, or you create a generated LUT by providing a translation function.
 
-A LUT implementation requires two functions: `structureL` to provide the subsignal structure,
+A generated LUT implementation requires two functions:
+`structureL` to provide the subsignal structure,
 and `translateL` to create the translation of a runtime value.
+A static LUT simply needs a single LUT to be defined under `staticL`.
 
+By default, `WaveformLUT` creates a generated LUT.
+It uses the standard `Generic`-based functions to create subsignals,
+and `Show` to determine the value.
 
 > **Important:** Using LUTs has several drawbacks. Any miniscule change to the data type
 > will result in a completely new translation being stored, which is bad for container types
@@ -29,7 +37,34 @@ and `translateL` to create the translation of a runtime value.
 > translations of the values that occur in simulation!
 
 
-### CHANGING THE RENDER VALUE
+### STATIC LUTS
+
+Creating a static LUT is really easy, and works best when you have a "small" data type
+for which you can easily define translations for all values.
+Simply add a list of value-translation pairs under `staticL`.
+
+Since the default implementations for `structureL` and `translateL` have some constraints,
+it's best to set them to `undefined`.
+
+Currently, `Bit` uses a static LUT. The implementation is as follows:
+
+```hs
+instance WaveformLUT Bit where
+  staticL =
+    Just
+      [ (     high, Translation (Just ("1", "$bit_high", 11)) [])
+      , (      low, Translation (Just ("0",  "$bit_low", 11)) [])
+      , (undefined, Translation (Just ("x",      WSWarn, 11)) [])
+      ]
+  structureL = undefined
+  translateL = undefined
+```
+
+`WaveformLUT` creates a static LUT if `staticL` is `Just lut`,
+and a generated LUT if `staticL` is `Nothing`.
+
+
+### GENERATED LUTS: CHANGING THE RENDER VALUE
 
 Since `WaveformLUT` uses `Show` by default, it's very easy to change the text value of a signal:
 derive `Waveform` via `WaveformForLUT`, create a `WaveformLUT` instance,
@@ -101,7 +136,7 @@ instance WaveformLUT MyRGB where
 
 ![Raindbowcolored signal with subsignals for the values of red, green and blue.](luts/simple.png)
 
-### CHANGING THE SUBSIGNALS
+### GENERATED LUTS: CHANGING THE SUBSIGNALS
 
 To change the subsignals, you need two things:
 - to define the structure
