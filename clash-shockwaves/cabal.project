@@ -1,7 +1,7 @@
 packages:
   clash-shockwaves.cabal
 
-package shockwaves
+package clash-shockwaves
   haddock-options: --optghc=-DHADDOCK_ONLY
 
 write-ghc-environment-files: always

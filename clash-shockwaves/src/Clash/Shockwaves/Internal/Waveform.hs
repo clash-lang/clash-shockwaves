@@ -73,7 +73,7 @@ import Constants (mAX_TUPLE_SIZE)
 rFromVal :: Value -> Render
 rFromVal v = Just (v, WSDefault, 11)
 
--- | Get a 't:Translation' from a 'Value' using 'WSDefault' and precedence 11.
+-- | Get a t'Translation' from a 'Value' using 'WSDefault' and precedence 11.
 tFromVal :: Value -> Translation
 tFromVal v = Translation (rFromVal v) []
 
@@ -88,20 +88,20 @@ styHead _ = error "style list must be long enough"
 
 -- making translators
 
-{- | Wrap a 't:Translator' in a 'TStyled' translator using some style, unless the
+{- | Wrap a t'Translator' in a 'TStyled' translator using some style, unless the
 provided style is 'WSDefault'.
 -}
 wrapStyle :: WaveStyle -> Translator -> Translator
 wrapStyle WSDefault t = t
 wrapStyle s t = tStyled s t
 
-{- | Wrap a 't:Translator' in a 'TStyled' variant translator with the
+{- | Wrap a t'Translator' in a 'TStyled' variant translator with the
 provided style.
 -}
 tStyled :: WaveStyle -> Translator -> Translator
 tStyled s (Translator w v) = Translator w $ TStyled s (Translator w v)
 
-{- | Wrap a 't:Translator' in a 'TDuplicate' variant translator with the
+{- | Wrap a t'Translator' in a 'TDuplicate' variant translator with the
 provided subsignal name.
 -}
 tDup :: SubSignal -> Translator -> Translator
@@ -484,7 +484,7 @@ class (Typeable a, BitPack a) => WaveformLUT a where
     (Generic a, Show a, WaveformG (Rep a ()), PrecG (Rep a ())) => a -> Translation
   translateL = translateWith renderShow splitL
 
--- | Make sure a 't:Translation' is fully defined. If not, return a 't:Translation' with @"undefined"@.
+-- | Make sure a t'Translation' is fully defined. If not, return a t'Translation' with @"undefined"@.
 safeTranslation :: Translation -> Translation
 safeTranslation = safeValOr (errorT "undefined")
 

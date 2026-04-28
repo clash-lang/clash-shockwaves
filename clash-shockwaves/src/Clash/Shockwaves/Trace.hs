@@ -90,6 +90,8 @@ module Clash.Shockwaves.Trace
   , Maps
   , TraceMap
   , TypeRepBS
+  , JSON
+  , AddValue
   -- ** Functions
   , traceSignal#
   , traceVecSignal#
