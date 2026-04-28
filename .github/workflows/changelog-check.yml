@@ -15,7 +15,6 @@ jobs:
           fetch-depth: 0  # needed to diff properly
 
       - name: Check for changelog entry
-        continue-on-error: true
         run: |
           # Compare PR branch against main
           BASE_REF="origin/${{ github.base_ref }}"
