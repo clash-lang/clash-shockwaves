@@ -47,9 +47,9 @@ style = ["./shockwaves_style"]
 
 # red = "W"
 # green = "#00ff00"
-# blue = "#fff"
+# blue = "#00f"
 
-# defaulting = ["$other","$default"]
+# defaulting = ["$other_var","$default"]
 
 
 ### Builtin data types (Maybe, Bool, Either)
@@ -63,10 +63,16 @@ either_left = "#a50"
 either_right = "N"
 
 ### Clock/Reset/Enable (Clash.Shockwaves.Trace.CRE)
+# clk_pre = "H"
 # clk_a = "#fff"
 # clk_b = "#83b"
+
 # reset_on = "W"
 # reset_off = "H"
+reset_off = "#888"
+
 # enable_on = "H"
+enable_on = "#888"
 enable_off = "#d6d639"
+
 reset_on_enable_off = "#cd871f"

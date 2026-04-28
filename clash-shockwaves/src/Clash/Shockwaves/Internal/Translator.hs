@@ -25,7 +25,7 @@ import Math.NumberTheory.Logarithms (intLog2)
 import Numeric (showHex)
 import Data.String (IsString(fromString))
 
--- | Apply a 'WaveStyle' to a 't:Translation' value. Only replaces 'WSDefault'.
+-- | Apply a 'WaveStyle' to a t'Translation' value. Only replaces 'WSDefault'.
 applyStyle :: WaveStyle -> Translation -> Translation
 applyStyle s (Translation r sb) = Translation (applyStyleR s r) sb
 
@@ -34,7 +34,7 @@ applyStyleR :: WaveStyle -> Render -> Render
 applyStyleR s (Just (l, WSDefault, p)) = Just (l, s, p)
 applyStyleR _ r = r
 
-{- | Apply a precedence value to a 't:Translation'.
+{- | Apply a precedence value to a t'Translation'.
 If the precedence is higher or equal to that of the current value,
 it is wrapped in parentheses.
 -}
@@ -59,7 +59,7 @@ it is wrapped in parentheses.
 applyPrecs :: Prec -> [(a, Translation)] -> [(a, Translation)]
 applyPrecs p = L.map (second (applyPrec p))
 
-{- | Get the value of a 't:Translation'. If the value is not defined,
+{- | Get the value of a t'Translation'. If the value is not defined,
 return @{value missing}@.
 -}
 getVal :: Translation -> Value
@@ -285,7 +285,7 @@ translateBinT trans@(Translator width variant) bin''@(BL _ _ blLength)
 
 -- structure
 
-{- | Return the 't:Structure' implied by a 't:Translator'. Useful for determining
+{- | Return the t'Structure' implied by a t'Translator'. Useful for determining
 the structure of a constant translation.
 -}
 structureT :: Translator -> Structure
@@ -334,7 +334,7 @@ mergeDuplicateSubsignals = L.reverse . L.foldr addSignal [] . L.reverse
           (Nothing, (name, Structure $ mergeDuplicateSubsignals (s' <> s)))
     mergeOrPass newsig oldsig = (newsig, oldsig)
 
--- | Construct a 't:Structure' from a 't:Translation'.
+-- | Construct a t'Structure' from a t'Translation'.
 fromTranslation :: Translation -> Structure
 fromTranslation (Translation _ subs) = Structure $ L.map (second fromTranslation) subs
 
