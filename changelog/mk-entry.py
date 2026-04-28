@@ -25,7 +25,7 @@ if not(description):
 
     description="\n".join(lines).rstrip()
 
-timestamp = time.strftime("%Y-%M-%d_T%H:%M:%S")
+timestamp = time.strftime("%Y-%m-%d_T%H:%M:%S")
 fname = f"{timestamp}_{variant}_{title}"
 print("Storing to",fname)
 with open(fname,"w") as fp:
