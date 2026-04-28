@@ -108,7 +108,7 @@ impl TranslatorVariant {
                     if b <= a {
                         warn!("AdvancedSum translator for {source} has empty range ({a},{b})");
                     }
-                    if (a+1).clog() > width {
+                    if (a + 1).clog() > width {
                         warn!(
                             "AdvancedSum translator for {source} has range with unreachable lower bound {a}"
                         );
@@ -237,7 +237,7 @@ impl TranslatorVariant {
                     }
                     Some(_) => {}
                     None => warn!(
-                        "ChangeBits translator for {source:?} may produces potentially variable number of bits"
+                        "ChangeBits translator for {source:?} may produce a variable number of bits"
                     ),
                 }
 

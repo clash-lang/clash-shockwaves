@@ -197,7 +197,6 @@ impl<'a> AsRef<str> for StringLike<'a> {
 impl BitPart {
     /// Manipulate bits according to the `BitPart` structure.
     fn from<'a>(&'a self, bits: &'a str) -> StringLike<'a> {
-        // TODO: use Either<String,&str> for optimization
         match self {
             BitPart::In => StringLike::Slice(bits),
             BitPart::Concat(bps) => {
