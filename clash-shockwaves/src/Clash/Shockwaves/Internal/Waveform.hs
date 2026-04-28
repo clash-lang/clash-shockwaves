@@ -245,7 +245,7 @@ renameFields :: [[String]] -> Translator -> Translator
 renameFields names (Translator w (TStyled s t)) = Translator w $ TStyled s $ renameFields names t
 renameFields names (Translator w (TDuplicate n t)) = Translator w $ TDuplicate n $ renameFields names t
 renameFields names (Translator w (TSum subs)) = Translator w $ TSum $ L.zipWith (\n t -> renameFields [n] t) names subs
-renameFields names (Translator w p@TProduct{subs}) = Translator w p{subs = L.zipWith (\n (_,t)->(n,t)) (names L.!! 0) subs}
+renameFields names (Translator w p@TProduct{subs}) = Translator w p{subs = L.zipWith (\n (_, t) -> (n, t)) (names L.!! 0) subs}
 renameFields _ t = t
 
 ------------------------------------------- GENERIC -------------------------------------
@@ -796,7 +796,7 @@ deriving via WaveformForConst () instance Waveform ()
 
 -- | Configure styles through style variables @bool_false@ and @bool_true@.
 instance Waveform Bool where
-  translator = noConstructorSubsignals False $ defaultTranslator @Bool ["$bool_false","$bool_true"]
+  translator = noConstructorSubsignals False $ defaultTranslator @Bool ["$bool_false", "$bool_true"]
 
 -- | Configure styles through style variables @maybe_nothing@ and @maybe_just@.
 instance (Waveform a) => Waveform (Maybe a) where
