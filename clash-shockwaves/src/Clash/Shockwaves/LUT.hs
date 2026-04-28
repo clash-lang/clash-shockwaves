@@ -21,7 +21,9 @@ module Clash.Shockwaves.LUT (
   splitL,
   precL,
   WaveformForLUT (..),
+  tLut,
   tGeneratedLut,
+  tStaticLut,
 
   -- * Utility
   tFromVal,

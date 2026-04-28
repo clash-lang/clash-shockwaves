@@ -222,7 +222,7 @@ addTypes = addTypesT $ tRef (Proxy @a)
 styles' :: forall a. (Waveform a) => [WaveStyle]
 styles' = styles @a <> L.repeat WSDefault
 
--- | Check if the type requires LUTs for translation.
+-- | Check if the type requires values to be added to LUTs.
 hasGeneratedLut :: forall a. (Waveform a) => Bool
 hasGeneratedLut = hasGeneratedLutT $ translator @a
 
