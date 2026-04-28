@@ -30,7 +30,10 @@ data F = M Bool Int
 
 infixl 5 ://:
 data Op a b = a ://: b
-  deriving (ShowX, BitPack, NFDataX, Generic, Typeable, Waveform)
+  deriving (ShowX, BitPack, NFDataX, Generic, Typeable)
+instance (Waveform a, Waveform b) => Waveform (Op a b) where
+  translator = renameFields [["lhs","rhs"]] $ defaultTranslator @(Op a b) []
+
 data St = St {a :: Bool, b :: Int}
   deriving (ShowX, BitPack, NFDataX, Generic, Typeable, Waveform)
 

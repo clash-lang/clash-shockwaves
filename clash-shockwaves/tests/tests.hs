@@ -269,8 +269,8 @@ translationTest = testGroup "TRANSLATION STRUCTURE/STYLE IS CORRECT"
     [ (M True 3                     , \( T _ ["0":@T _ [],"1":@T _ []]                                          )->0)
     , (undef                        , \( T _ ["0":@T _ [],"1":@T _ []]                                          )->0) ]
   , testGroup "Op" $ pats
-    [ (True ://: (False ://: False) , \( T _ ["0":@T _ _,"1":@T _ ["0":@T _ _, "1":@T _ _]]                     )->0)
-    , (undef                        , \( T _ ["0":@T _ _,"1":@T _ ["0":@T _ _, "1":@T _ _]]                     )->0) ]
+    [ (True ://: (False ://: False) , \( T _ ["lhs":@T _ _,"rhs":@T _ ["lhs":@T _ _, "rhs":@T _ _]]             )->0)
+    , (undef                        , \( T _ ["lhs":@T _ _,"rhs":@T _ ["lhs":@T _ _, "rhs":@T _ _]]             )->0) ]
   , testGroup "St" $ pats
     [ (St{b=3,a=False}              , \( T _ ["a":@T _ [],"b":@T _ []]                                          )->0)
     , (undef                        , \( T _ ["a":@T _ [],"b":@T _ []]                                          )->0) ]

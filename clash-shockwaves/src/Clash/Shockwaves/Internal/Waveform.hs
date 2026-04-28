@@ -160,7 +160,7 @@ class (Typeable a, BitPack a) => Waveform a where
   -- | The translator used for the data type. Must match the structure value.
   translator :: Translator
   default translator :: (WaveformG (Rep a ())) => Translator
-  translator = translatorG @(Rep a ()) (width @a) (styles' @a)
+  translator = defaultTranslator @a (styles @a)
 
   {- | List of styles used for constructors.
 
@@ -175,6 +175,13 @@ class (Typeable a, BitPack a) => Waveform a where
   -- | Runtime bitsize of the type.
   width :: Int
   width = bitsize (Proxy @a)
+
+{- | Return the default translator that is derived for a data type.
+This default can be modified to obtain a slightly different translator.
+-}
+defaultTranslator ::
+  forall a. (Waveform a, WaveformG (Rep a ())) => [WaveStyle] -> Translator
+defaultTranslator sty = translatorG @(Rep a ()) (width @a) (sty <> L.repeat WSDefault)
 
 {- | Function to translate values. This function creates a translation from
 the binary representation of the data using translateBin, and the translator.
@@ -209,6 +216,37 @@ structure = structureT $ translator @a
 -- | Add all (sub) values that use 'TLut' to their respective LUTs.
 addValue :: forall a. (Waveform a) => a -> [LUTMap -> LUTMap]
 addValue = addValueT (translator @a) . BL.binPack
+
+-- translator modification
+
+{- | Remove constructor subsignals from a (generated) translator.
+This results in all constructor field subsignals becoming direct subsignals of the toplevel signal.
+Set rename to `True` to add the constructor's name as a prefix to the signal name.
+
+Essentially, this function searches through 'TStyled' and 'TSum' for any 'TDuplicate' translators to remove.
+If renaming subsignals, it then searches through 'TStyled' to rename subsignals in 'TProduct'.
+-}
+noConstructorSubsignals :: Bool -> Translator -> Translator
+noConstructorSubsignals rename (Translator w (TStyled s t)) = Translator w $ TStyled s $ noConstructorSubsignals rename t
+noConstructorSubsignals rename (Translator w (TSum subs)) = Translator w $ TSum $ noConstructorSubsignals rename <$> subs
+noConstructorSubsignals rename (Translator _ (TDuplicate n t)) = if rename then prefixFields t else t
+ where
+  prefixFields (Translator w (TStyled s t')) = Translator w $ TStyled s $ prefixFields t'
+  prefixFields (Translator w p@TProduct{subs}) = Translator w p{subs = (\(s, t') -> (n <> "." <> s, t')) <$> subs}
+  prefixFields t' = t'
+noConstructorSubsignals _ t = t
+
+{- | Rename constructor fields. This is particularly useful for non-record types.
+The input is a list of a list of field names, per constructor.
+Excess fields/constructors are ignored. If not enough fields or constructors are provided,
+the function may error or silently break the t'Translator'.
+-}
+renameFields :: [[String]] -> Translator -> Translator
+renameFields names (Translator w (TStyled s t)) = Translator w $ TStyled s $ renameFields names t
+renameFields names (Translator w (TDuplicate n t)) = Translator w $ TDuplicate n $ renameFields names t
+renameFields names (Translator w (TSum subs)) = Translator w $ TSum $ L.zipWith (\n t -> renameFields [n] t) names subs
+renameFields names (Translator w p@TProduct{subs}) = Translator w p{subs = L.zipWith (\n (_,t)->(n,t)) (names L.!! 0) subs}
+renameFields _ t = t
 
 ------------------------------------------- GENERIC -------------------------------------
 
@@ -758,31 +796,13 @@ deriving via WaveformForConst () instance Waveform ()
 
 -- | Configure styles through style variables @bool_false@ and @bool_true@.
 instance Waveform Bool where
-  translator =
-    Translator 1
-      $ TSum
-        [ tConst $ Just ("False", "$bool_false", 11)
-        , tConst $ Just ("True", "$bool_true", 11)
-        ]
+  translator = noConstructorSubsignals False $ defaultTranslator @Bool ["$bool_false","$bool_true"]
 
 -- | Configure styles through style variables @maybe_nothing@ and @maybe_just@.
 instance (Waveform a) => Waveform (Maybe a) where
   translator =
-    Translator (width @(Maybe a))
-      $ TSum
-        [ Translator 0 $ TConst $ Translation (Just ("Nothing", "$maybe_nothing", 11)) []
-        , tStyled (WSVar "maybe_just" (WSInherit 0))
-            $ Translator (width @a)
-            $ TProduct
-              { start = "Just "
-              , sep = ""
-              , stop = ""
-              , labels = []
-              , preci = 10
-              , preco = 10
-              , subs = [("Just.0", tRef (Proxy @a))]
-              }
-        ]
+    noConstructorSubsignals True
+      $ defaultTranslator @(Maybe a) ["$maybe_nothing", WSVar "maybe_just" $ WSInherit 0]
 
 -- | Configure styles through style variables @either_left@ and @either_right@.
 instance (Waveform a, Waveform b) => Waveform (Either a b) where
