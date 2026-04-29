@@ -1,0 +1,15 @@
+---
+issues: [33]
+---
+
+# Surfer protection
+The Surfer translator extension now verifies the Shockwaves translators it's served.
+
+Previously, incorrect custom `Waveform` instances could crash the extension,
+taking Surfer down with it.
+The new verification step checks for any major issues that would crash Surfer,
+replacing any truly problematic translators, and also warns of (probably) incorrect
+constructions such as translators that request more bits than they actually use.
+
+For performance reasons, lookup tables are not checked, and values not matching the
+reported structure might still cause crashes.
