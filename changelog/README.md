@@ -1,9 +1,9 @@
 # Making changelog entries
 
-Run `mk-entry.py`.
+Run `qlog entry` (edit further by hand, then run `qlog check`).
 
 # Publishing changelog entries
 
-Run `aggregate-entries.py`.
-Add the generated Markdown to `CHANGELOG.md`.
-Delete the entries.
+Run `qlog collect`.
+Add the generated Markdown to `CHANGELOG.md` (`-p CHANGELOG.md`).
+Delete the entries (`--delete`).
