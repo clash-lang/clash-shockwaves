@@ -20,10 +20,10 @@ import qualified Data.List as L
 import Data.List.Extra (chunksOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, listToMaybe)
+import Data.String (IsString (fromString))
 import Data.Tuple.Extra (second)
 import Math.NumberTheory.Logarithms (intLog2)
 import Numeric (showHex)
-import Data.String (IsString(fromString))
 
 -- | Apply a 'WaveStyle' to a t'Translation' value. Only replaces 'WSDefault'.
 applyStyle :: WaveStyle -> Translation -> Translation
