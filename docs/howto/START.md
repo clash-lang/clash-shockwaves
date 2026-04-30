@@ -126,6 +126,7 @@ In cases where such a derivation fails, you might want to use one of the followi
 
 If you want to customize the behaviour, you can use one of these resources:
 - [How to use colors to improve clarity](STYLES.md)
+- [How to modify the default translator](DEFAULT.md)
 - [How to add extra information to your data types](EXTRA_INFO.md)
 
 Some other things you can do with Shockwaves:

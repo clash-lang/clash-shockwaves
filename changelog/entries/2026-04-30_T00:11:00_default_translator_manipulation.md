@@ -2,6 +2,11 @@
 issues: [50]
 ---
 
+# Modifying the default translator
+It was already possible to set styles; now, it's also possible to easily modify
+the structure of the automatically derived translator of a type without doing a
+fully custom implementation! See [the new HOWTO guide](docs/howto/DEFAULT.md).
+
 # ADDED
 Function `defaultTranslator`, which returns the translator that is used
 when deriving `Waveform`.
@@ -10,6 +15,3 @@ when deriving `Waveform`.
 `noConstructorSubsignals` and `renameFields` can be used to manipulate the default
 translator (made available through `defaultTranslator`).
 `noConstructorSubsignals` creates the same translators that are used for `Maybe` and `Bool`.
-
-These functions can be used to obtain some common non-default `Waveform` instances
-more easily.
