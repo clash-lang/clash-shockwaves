@@ -8,8 +8,7 @@ the structure of the automatically derived translator of a type without doing a
 fully custom implementation! See [the new HOWTO guide](docs/howto/DEFAULT.md).
 
 # ADDED
-Function `defaultTranslator`, which returns the translator that is used
-when deriving `Waveform`.
+`defaultTranslator`, which returns the translator that is used when deriving `Waveform`.
 
 # ADDED
 `noConstructorSubsignals` and `renameFields` can be used to manipulate the default
