@@ -10,8 +10,8 @@ Dynamically sized bitvectors.
 -}
 module Clash.Shockwaves.Internal.BitList where
 
-import Clash.Prelude hiding (concat, drop, split, take, pack, unpack)
 import qualified Clash.Class.BitPack as BP
+import Clash.Prelude hiding (concat, drop, pack, split, take, unpack)
 import Clash.Sized.Internal.BitVector
 import Data.Aeson hiding (Value)
 import Data.Aeson.Types (toJSONKeyText)
@@ -122,7 +122,7 @@ instance Bits BitList where
   xor (BL ma ia la) (BL mb ib lb) = BL m (((ia `xor` ib) .|. m) - m) (max la lb)
    where
     m = ma .|. mb
-  
+
   complement (BL m i l) = BL m (((((1 `shiftL` l) - 1) - i) .|. m) - m) l
   shift (BL m i l) a = BL (shift m a) (shift i a) l
   rotate (BL m i l) a = BL (rotate m a) (rotate i a) l
