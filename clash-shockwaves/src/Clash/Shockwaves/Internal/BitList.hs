@@ -10,7 +10,8 @@ Dynamically sized bitvectors.
 -}
 module Clash.Shockwaves.Internal.BitList where
 
-import Clash.Prelude hiding (concat, drop, split, take)
+import Clash.Prelude hiding (concat, drop, split, take, pack, unpack)
+import qualified Clash.Class.BitPack as BP
 import Clash.Sized.Internal.BitVector
 import Data.Aeson hiding (Value)
 import Data.Aeson.Types (toJSONKeyText)
@@ -43,6 +44,10 @@ instance Show BitList where
     showBit 0 1 = '1'
     showBit _ _ = 'x'
 
+-- | Return the length of the 'BitList'.
+length :: BitList -> Int
+length (BL _ _ l) = l
+
 -- | Convert a 'BitVector' into a 'BitList'.
 bvToBl :: (KnownNat n) => BitVector n -> BitList
 bvToBl (BV @n m i) = BL m i (natToNum @n)
@@ -55,12 +60,12 @@ blToBv (BL m i l) | natToNum @n == l = BV m i
 blToBv _ = errorX "BitList does not match BitVector size"
 
 -- | Pack a value into a 'BitList'.
-binPack :: (BitPack a) => a -> BitList
-binPack = bvToBl . pack
+pack :: (BitPack a) => a -> BitList
+pack = bvToBl . BP.pack
 
 -- | Unpack a value from a 'BitList'.
-binUnpack :: (BitPack a) => BitList -> a
-binUnpack = unpack . blToBv
+unpack :: (BitPack a) => BitList -> a
+unpack = BP.unpack . blToBv
 
 -- | Discard the /n/ most significant bits.
 drop :: Int -> BitList -> BitList
@@ -109,6 +114,7 @@ hasUndefined :: BitList -> Bool
 hasUndefined (BL m _ _) = m /= 0
 
 instance Bits BitList where
+  -- binary operations are right-aligned when not equal
   (.&.) (BL ma ia la) (BL mb ib lb) = BL (ma .|. mb) (ia .&. ib) (max la lb)
   (.|.) (BL ma ia la) (BL mb ib lb) = BL m ((ia .|. ib .|. m) - m) (max la lb)
    where
@@ -116,6 +122,7 @@ instance Bits BitList where
   xor (BL ma ia la) (BL mb ib lb) = BL m (((ia `xor` ib) .|. m) - m) (max la lb)
    where
     m = ma .|. mb
+  
   complement (BL m i l) = BL m (((((1 `shiftL` l) - 1) - i) .|. m) - m) l
   shift (BL m i l) a = BL (shift m a) (shift i a) l
   rotate (BL m i l) a = BL (rotate m a) (rotate i a) l
