@@ -325,11 +325,11 @@ data BitPart
     BPReverse BitPart
   | -- | Invert 0 and 1.
     BPInvert BitPart
-  | -- | Bitwise and.
+  | -- | Bitwise and. If multiple values of different lengths are provided, values are zero-padded on the left.
     BPAnd [BitPart]
-  | -- | Bitwise or.
+  | -- | Bitwise or. If multiple values of different lengths are provided, values are zero-padded on the left.
     BPOr [BitPart]
-  | -- | Bitwise xor.
+  | -- | Bitwise xor. If multiple values of different lengths are provided, values are zero-padded on the left.
     BPXor [BitPart]
   | {- | Turn a binary value into a one-hot signal based on the provided range.
     This essentially loops over all values in the range, creating a 1 iff the input

@@ -3,6 +3,9 @@ issues: [114]
 ---
 
 # ADDED
+`Bits` instance for `BitList`.
+
+# ADDED
 `BitList.length` returns a `BitList`'s length.
 
 # ADDED
