@@ -238,10 +238,15 @@ impl BitPart {
             ),
             BitPart::And(bps) | BitPart::Or(bps) | BitPart::Xor(bps) => {
                 let parts = bps.iter().map(|bp| bp.from(bits)).collect::<Vec<_>>();
-                let n = parts.first().unwrap().as_ref().len();
-                assert!(parts.iter().all(|b| b.as_ref().len() == n));
+                let n = parts.iter().map(|b| b.as_ref().len()).max().unwrap();
+                parts.iter_mut().for_each(|b| {
+                    let l = b.as_ref().len()
+                    if l != n {
+                        b = StringLike::Full("0".repeat(n-l)+b.as_ref());
+                    }
+                });
 
-                let trans = (0..n)
+                let transposed = (0..n)
                     .map(|i| {
                         parts
                             .iter()
@@ -255,14 +260,14 @@ impl BitPart {
                 }
 
                 StringLike::Full(match self {
-                    BitPart::And(..) => trans
+                    BitPart::And(..) => transposed
                         .into_iter()
-                        .map(|bs| b2c(bs.iter().all(|b| *b == '1')))
+                        .map(|bs| if bs.contains('x') {'x'} else {b2c(bs.iter().all(|b| *b == '1'))})
                         .collect(),
-                    BitPart::Or(..) => trans.into_iter().map(|bs| b2c(bs.contains(&'1'))).collect(),
-                    BitPart::Xor(..) => trans
+                    BitPart::Or(..) => transposed.into_iter().map(|bs| if bs.contains('x') {'x'} else {b2c(bs.contains(&'1'))}).collect(),
+                    BitPart::Xor(..) => transposed
                         .into_iter()
-                        .map(|bs| b2c(bs.iter().filter(|b| **b == '1').count() & 1 == 1))
+                        .map(|bs| if bs.contains('x') {'x'} else {b2c(bs.iter().filter(|b| **b == '1').count() & 1 == 1)})
                         .collect(),
                     _ => unreachable!(),
                 })
