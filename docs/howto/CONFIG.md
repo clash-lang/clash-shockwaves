@@ -43,15 +43,29 @@ propagate_errors = false
 ```
 
 
-### NUMBER SPACER SETTINGS
+### NUMBER FORMAT AND SPACER SETTINGS
 
-You may run into a situation where the default number spacers do not suit your needs,
+You may run into a situation where the default number format or spacers do not suit your needs,
 particularly when using a predefined numerical type.
-In this case, you can override the spacers used for numbers. This can be done
-per number format.
+In this case, you can override the format and spacers used for numbers.
+The latter can be done per number format.
+
+To override the number format for all numbers, use:
+```
+override_number_format = 'S'
+```
+Options are `S`/`Sig`, `U`/`Uns`, `H`/`Hex`, `O`/`Oct`, `B`/`Bin`.
+Keep in mind that overriding the number format may result int
+
+**Note:** Overriding the format resets the spacer options; you can still use the method
+described below to get back the spacers.
+
+**Note:** The signed translator requires a separate operator precedence value for
+negative numbers. When simply using `"S"` as value, the precedence is set to 11 (not the Haskell default).
+If you want, you can set it to `{"S":6}` for a more accurate Haskell representation.
 
 
-For example, if you want unsigned numbers to be separated by `'` insted of `_`, write:
+If you want unsigned numbers to be separated by `'` insted of `_`, write:
 ```
 override_uns_spacer = [3,"'"]
 ```

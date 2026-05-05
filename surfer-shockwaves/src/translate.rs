@@ -357,6 +357,11 @@ impl State {
                 prefix,
                 warn,
             } => {
+                let (format, spacer) = self
+                    .config
+                    .get_format_override()
+                    .map(|f| (f, &None))
+                    .unwrap_or((format, spacer));
                 let spacer = self.config.get_spacer_override(format).unwrap_or(spacer);
                 translate_number(value, format, spacer, prefix, *warn)
             }
