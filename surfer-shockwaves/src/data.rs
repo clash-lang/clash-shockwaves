@@ -136,11 +136,11 @@ pub enum TranslatorVariant {
     Number {
         #[serde(alias = "f")]
         format: NumberFormat,
-        #[serde(alias = "s")]
+        #[serde(alias = "s", default)]
         spacer: NumberSpacer,
-        #[serde(alias = "p")]
+        #[serde(alias = "p", default)]
         prefix: String,
-        #[serde(alias = "w")]
+        #[serde(alias = "w", default)]
         warn: bool,
     },
 

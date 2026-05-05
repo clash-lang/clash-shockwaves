@@ -13,8 +13,9 @@
 # propagate_errors = false
 
 ### The default number format can be changed for all number translators.
-### For the signed format, you can set the operator precedence of negative values.
-# override_number_format = {"Sig"=6} # using just "Sig" defaults to precedence 11
+### This removes all spacers and sets the prefix to `<x>:` where `<x>` is the first
+### letter of the format.
+# override_number_format = "Sig"
 # override_number_format = "Uns"
 # override_number_format = "Hex"
 # override_number_format = "Oct"

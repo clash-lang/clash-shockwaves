@@ -43,7 +43,7 @@ fn translate_number(
     value: &str,
     format: &NumberFormat,
     spacer: &NumberSpacer,
-    prefix: &String,
+    prefix: &str,
     warn: bool,
 ) -> Translation {
     let apply_spacer = |v: String| match spacer {
@@ -167,6 +167,18 @@ fn translate_number(
         }),
         vec![],
     )
+}
+
+impl NumberFormat {
+    fn default_prefix(&self) -> &str {
+        match self {
+            NumberFormat::Sig(_) => "S:",
+            NumberFormat::Uns => "U:",
+            NumberFormat::Hex => "H:",
+            NumberFormat::Oct => "O:",
+            NumberFormat::Bin => "B:",
+        }
+    }
 }
 
 impl ValuePart {
@@ -357,11 +369,11 @@ impl State {
                 prefix,
                 warn,
             } => {
-                let (format, spacer) = self
+                let (format, spacer, prefix) = self
                     .config
                     .get_format_override()
-                    .map(|f| (f, &None))
-                    .unwrap_or((format, spacer));
+                    .map(|f| (f, &None, f.default_prefix()))
+                    .unwrap_or((format, spacer, prefix));
                 let spacer = self.config.get_spacer_override(format).unwrap_or(spacer);
                 translate_number(value, format, spacer, prefix, *warn)
             }

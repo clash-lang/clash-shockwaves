@@ -55,15 +55,10 @@ To override the number format for all numbers, use:
 override_number_format = 'S'
 ```
 Options are `S`/`Sig`, `U`/`Uns`, `H`/`Hex`, `O`/`Oct`, `B`/`Bin`.
-Keep in mind that overriding the number format may result int
+Keep in mind that this will produce values that no longer match Haskell.
 
-**Note:** Overriding the format resets the spacer options; you can still use the method
-described below to get back the spacers.
-
-**Note:** The signed translator requires a separate operator precedence value for
-negative numbers. When simply using `"S"` as value, the precedence is set to 11 (not the Haskell default).
-If you want, you can set it to `{"S":6}` for a more accurate Haskell representation.
-
+> **Note:** Overriding the format resets the spacer options; you can still use the method
+> described below to get back the spacers.
 
 If you want unsigned numbers to be separated by `'` insted of `_`, write:
 ```
