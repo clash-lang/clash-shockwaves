@@ -40,7 +40,7 @@ Some default spacers are defined. `NoSpacer` is the same as `'Nothing`.
 `DecSpacer` is the default for decimal numbers and places a `_` every 3 digits;
 `BinSpacer`, `OctSpacer` and `HexSpacer` place a `_` every 8, 4 and 2 digits respectively.
 
-**Note:** The spacer configuration can be overridden globally per number format!
+**Note:** The number format, as well as the spacer configuration per number format, can be overridden globally!
 Check [the configuration guide](CONFIG.md) for more.
 
 ### More control

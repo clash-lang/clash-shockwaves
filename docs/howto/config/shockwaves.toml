@@ -12,6 +12,15 @@
 ### This behaviour can be turned off:
 # propagate_errors = false
 
+### The default number format can be changed for all number translators.
+### This removes all spacers and sets the prefix to `<x>:` where `<x>` is the first
+### letter of the format.
+# override_number_format = "Sig"
+# override_number_format = "Uns"
+# override_number_format = "Hex"
+# override_number_format = "Oct"
+# override_number_format = "Bin"
+
 ### Numbers are rendered using spacers to make them more legible.
 ### These can be specified from within Haskell, but this behaviour may be
 ### overwritten per number type. By default, signed and unsigned decimal
