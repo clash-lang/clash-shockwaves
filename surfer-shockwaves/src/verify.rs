@@ -47,7 +47,7 @@ impl TranslatorVariant {
     /// Other (potential) problems are reported.
     pub fn verify(&mut self, width: u32, source: &str, translators: &HashMap<String, u32>) {
         if let Err(e) = self.verify2(width, source, translators) {
-            error!("Critical error in translator for {source}: {e}");
+            error!("SHOCKWAVES: Critical error in translator for {source}: {e}");
             *self = TranslatorVariant::Const(Translation(
                 Some(("{".to_owned() + e + "}", WaveStyle::Error, ATOMIC)),
                 vec![],
@@ -63,11 +63,15 @@ impl TranslatorVariant {
         match self {
             TranslatorVariant::Ref(s) => match translators.get(s) {
                 Some(w) if *w < width => error!(
-                    "Ref translator for {source:?} has insufficient bits to supply referenced translator"
+                    "SHOCKWAVES: Ref translator for {source:?} has insufficient bits to supply referenced translator"
                 ),
-                Some(w) if *w > width => warn!("Ref translator for {source:?} has unused bits"),
+                Some(w) if *w > width => {
+                    warn!("SHOCKWAVES: Ref translator for {source:?} has unused bits")
+                }
                 Some(_) => {}
-                None => error!("Ref translator for {source:?} refers to unknown translator {s:?}"),
+                None => error!(
+                    "SHOCKWAVES: Ref translator for {source:?} refers to unknown translator {s:?}"
+                ),
             },
             TranslatorVariant::Sum(subs) => {
                 if subs.is_empty() {
@@ -81,10 +85,10 @@ impl TranslatorVariant {
                 let rest = subs.iter().map(|s| s.width).max().unwrap();
                 if rest > width - tag {
                     error!(
-                        "Sum translator for {source:?} has insufficient bits to supply subtranslator"
+                        "SHOCKWAVES: Sum translator for {source:?} has insufficient bits to supply subtranslator"
                     );
                 } else if rest < width - tag {
-                    warn!("Sum translator for {source:?} has unused bits");
+                    warn!("SSHOCKWAVES: um translator for {source:?} has unused bits");
                 }
 
                 subs.iter_mut().for_each(|s| s.verify(source, translators));
@@ -106,11 +110,13 @@ impl TranslatorVariant {
 
                 for ((a, b), _) in range_translators.iter() {
                     if b <= a {
-                        warn!("AdvancedSum translator for {source} has empty range ({a},{b})");
+                        warn!(
+                            "SHOCKWAVES: AdvancedSum translator for {source} has empty range ({a},{b})"
+                        );
                     }
                     if (a + 1).clog() > width {
                         warn!(
-                            "AdvancedSum translator for {source} has range with unreachable lower bound {a}"
+                            "SHOCKWAVES: AdvancedSum translator for {source} has range with unreachable lower bound {a}"
                         );
                     }
                 }
@@ -129,7 +135,7 @@ impl TranslatorVariant {
                 if bits > width {
                     return Err("Product translator has insufficient bits to supply all fields");
                 } else if bits < width {
-                    warn!("Product translator for {source:?} has unused bits");
+                    warn!("SHOCKWAVES: Product translator for {source:?} has unused bits");
                 }
 
                 subs.iter_mut()
@@ -152,7 +158,7 @@ impl TranslatorVariant {
                     }
                     if (*to - *from) as u32 != sub.width {
                         warn!(
-                            "AdvancedProduct subtranslator slice does not match subtranslator width"
+                            "SHOCKWAVES: AdvancedProduct subtranslator slice does not match subtranslator width"
                         )
                     }
                 }
@@ -184,12 +190,14 @@ impl TranslatorVariant {
             }
             TranslatorVariant::Number { spacer, .. } => {
                 if width == 0 {
-                    warn!("Number translator for {source:?} has 0 bits");
+                    warn!("SHOCKWAVES: Number translator for {source:?} has 0 bits");
                 }
                 match spacer {
-                    Some((0, s)) if !s.is_empty() => warn!("Number spacer has unused value {s:?}"),
+                    Some((0, s)) if !s.is_empty() => {
+                        warn!("SHOCKWAVES: Number spacer has unused value {s:?}")
+                    }
                     Some((n, s)) if s.is_empty() && *n > 0 => {
-                        warn!("Number spacer empty but nonzero")
+                        warn!("SHOCKWAVES: Number spacer empty but nonzero")
                     }
                     _ => {}
                 }
@@ -199,7 +207,7 @@ impl TranslatorVariant {
                     return Err("Array translator has insufficient bits to supply all fields");
                 }
                 if sub.width * *len < width {
-                    warn!("Array translator for {source:?} has unused bits");
+                    warn!("SHOCKWAVES: Array translator for {source:?} has unused bits");
                 }
 
                 sub.verify(source, translators)
@@ -207,10 +215,10 @@ impl TranslatorVariant {
             TranslatorVariant::Styled(_, sub) => {
                 if sub.width > width {
                     error!(
-                        "Styled translator for {source:?} has insufficient bits to supply subtranslator"
+                        "SHOCKWAVES: Styled translator for {source:?} has insufficient bits to supply subtranslator"
                     );
                 } else if sub.width < width {
-                    warn!("Styled translator for {source:?} has unused bits")
+                    warn!("SHOCKWAVES: Styled translator for {source:?} has unused bits")
                 }
 
                 sub.verify(source, translators)
@@ -218,10 +226,10 @@ impl TranslatorVariant {
             TranslatorVariant::Duplicate(_, sub) => {
                 if sub.width > width {
                     error!(
-                        "Duplicate translator for {source:?} has insufficient bits to supply subtranslator"
+                        "SHOCKWAVES: Duplicate translator for {source:?} has insufficient bits to supply subtranslator"
                     );
                 } else if sub.width < width {
-                    warn!("Duplicate translator for {source:?} has unused bits")
+                    warn!("SHOCKWAVES: Duplicate translator for {source:?} has unused bits")
                 }
 
                 sub.verify(source, translators)
@@ -230,14 +238,16 @@ impl TranslatorVariant {
                 let b = bits.verify(width, source);
                 match b {
                     Some(w) if w < sub.width => error!(
-                        "ChangeBits translator for {source:?} produces insufficient bits for subtranslator"
+                        "SHOCKWAVES: ChangeBits translator for {source:?} produces insufficient bits for subtranslator"
                     ),
                     Some(w) if w > sub.width => {
-                        warn!("ChangeBits translator for {source:?} produces unused bits")
+                        warn!(
+                            "SHOCKWAVES: ChangeBits translator for {source:?} produces unused bits"
+                        )
                     }
                     Some(_) => {}
                     None => warn!(
-                        "ChangeBits translator for {source:?} may produce a variable number of bits"
+                        "SHOCKWAVES: ChangeBits translator for {source:?} may produce a variable number of bits"
                     ),
                 }
 
@@ -250,19 +260,32 @@ impl TranslatorVariant {
 
 impl BitPart {
     /// verify a BitPart, returning the bitsize if known
-    pub fn verify(&self, inputsize: u32, source: &str) -> Option<u32> {
+    pub fn verify(&mut self, inputsize: u32, source: &str) -> Option<u32> {
         match self {
             BitPart::In => Some(inputsize),
-            BitPart::Lit(l) => Some(l.len() as u32),
+            BitPart::Lit(l) => {
+                *l = l
+                    .chars()
+                    .map(|c| {
+                        if "01x".contains(c) {
+                            c
+                        } else {
+                            error!("SHOCKWAVES: Unknown character in BitPart literal");
+                            'x'
+                        }
+                    })
+                    .collect();
+                Some(l.len() as u32)
+            }
             BitPart::Concat(subs) => subs
-                .iter()
+                .iter_mut()
                 .map(|s| s.verify(inputsize, source))
                 .collect::<Option<Vec<u32>>>()
                 .map(|v| v.iter().sum()),
             BitPart::Slice((from, to), sub) => {
                 match sub.verify(inputsize, source) {
                     Some(w) if w < *to as u32 => error!(
-                        "BitPart Slice in ChangeBits translator for {source:?} has insufficient bits to slice"
+                        "SHOCKWAVES: BitPart Slice in ChangeBits translator for {source:?} has insufficient bits to slice"
                     ),
                     Some(_) => {}
                     None => {}
