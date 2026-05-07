@@ -1,7 +1,8 @@
 //! All types for VCD Metadata (translators, signals, and LUTs)
 
 use egui::Color32;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::de::{Deserializer, IntoDeserializer};
 use std::collections::HashMap;
 
 pub type SigMap = HashMap<String, String>;
@@ -14,7 +15,7 @@ pub type Lut = HashMap<String, Translation>;
 /// - the type of each signal
 /// - the translator of each type
 /// - any LUTs needed for translation
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Data {
     pub signals: SigMap,
     pub types: TypeMap,
@@ -22,7 +23,7 @@ pub struct Data {
 }
 
 /// The complete translation, including any subsignals, of a binary value.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Translation(pub Render, pub Vec<(String, Translation)>);
 
 /// The visual representation of the value on a single waveform line.
@@ -30,7 +31,7 @@ pub type Render = Option<(Value, WaveStyle, Prec)>;
 pub type Value = String;
 
 /// The style (which determine the color of the waveform).
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone)]
 pub enum WaveStyle {
     #[serde(alias = "D")]
     Default,
@@ -64,9 +65,10 @@ pub enum WaveStyle {
 pub type Prec = i16;
 /// Precedence of an atomic (a number, an identifier, somthing between parentheses)
 pub const ATOMIC: Prec = 11;
+pub const DEFAULT_SIG_NEG_PREC: Prec = ATOMIC; // not the haskell default of 6!
 
 /// A construct for turning binary values into translations.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Translator {
     #[serde(alias = "w")]
     pub width: u32,
@@ -76,7 +78,7 @@ pub struct Translator {
 }
 
 /// The different types of translators
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub enum TranslatorVariant {
     #[serde(alias = "R")]
     Ref(String),
@@ -134,11 +136,11 @@ pub enum TranslatorVariant {
     Number {
         #[serde(alias = "f")]
         format: NumberFormat,
-        #[serde(alias = "s")]
+        #[serde(alias = "s", default)]
         spacer: NumberSpacer,
-        #[serde(alias = "p")]
+        #[serde(alias = "p", default)]
         prefix: String,
-        #[serde(alias = "w")]
+        #[serde(alias = "w", default)]
         warn: bool,
     },
 
@@ -176,7 +178,7 @@ pub enum TranslatorVariant {
 }
 
 /// A part of a value (for `AdvancedProduct`).
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone)]
 pub enum ValuePart {
     #[serde(alias = "L")]
     Lit(String),
@@ -185,7 +187,7 @@ pub enum ValuePart {
 }
 
 /// A transformation on a binary value (for `ChangeBits`).
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone)]
 pub enum BitPart {
     #[serde(alias = "I")]
     In,
@@ -198,7 +200,8 @@ pub enum BitPart {
 }
 
 /// A number format (integers only).
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Deserialize, Debug, Clone, Copy)]
+#[serde(remote = "NumberFormat")]
 pub enum NumberFormat {
     #[serde(alias = "S")]
     Sig(Prec),
@@ -211,11 +214,24 @@ pub enum NumberFormat {
     #[serde(alias = "B")]
     Bin,
 }
+impl<'de> Deserialize<'de> for NumberFormat {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        if s == "Sig" || s == "S" {
+            Ok(NumberFormat::Sig(DEFAULT_SIG_NEG_PREC))
+        } else {
+            NumberFormat::deserialize(s.into_deserializer())
+        }
+    }
+}
 
 /// What spacer, if any, to use, to make large numbers more legible.
 pub type NumberSpacer = Option<(u32, String)>;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Structure(pub Vec<(String, Structure)>);
 
 impl Data {

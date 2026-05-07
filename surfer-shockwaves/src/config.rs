@@ -8,7 +8,7 @@ use either::Either;
 use either::Either::*;
 use extism_pdk::{error, info, warn};
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use toml::{Table, Value as TVal};
 
 use camino::Utf8PathBuf;
@@ -34,11 +34,13 @@ pub struct Config {
 type StyleMap = HashMap<String, Either<Option<WaveStyle>, toml::Value>>;
 
 /// A single configuration file
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default)]
 pub struct Configuration {
     #[serde(default)]
     pub propagate_errors: Option<bool>,
 
+    #[serde(default)]
+    pub override_number_format: Option<NumberFormat>,
     #[serde(default)]
     pub override_sig_spacer: Option<NumberSpacer>,
     #[serde(default)]
@@ -207,6 +209,14 @@ impl Config {
         self.local
             .propagate_errors
             .unwrap_or(self.global.propagate_errors.unwrap_or(true))
+    }
+
+    /// Get the number formar override settings.
+    pub fn get_format_override(&self) -> Option<&NumberFormat> {
+        self.local
+            .override_number_format
+            .as_ref()
+            .or(self.global.override_number_format.as_ref())
     }
 
     /// Get the spacer override settings for a number format.
