@@ -15,7 +15,6 @@ import Clash.Prelude hiding (concat, drop, pack, split, take, unpack)
 import Clash.Sized.Internal.BitVector hiding (unsafeMask)
 import Data.Aeson hiding (Value)
 import Data.Aeson.Types (toJSONKeyText)
-import Data.Either (isLeft)
 import Data.String (IsString (fromString))
 import qualified Data.Text as Text
 
