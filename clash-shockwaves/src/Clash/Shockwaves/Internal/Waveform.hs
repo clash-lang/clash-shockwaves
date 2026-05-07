@@ -238,14 +238,34 @@ noConstructorSubsignals _ t = t
 
 {- | Rename constructor fields. This is particularly useful for non-record types.
 The input is a list of a list of field names, per constructor.
-Excess fields/constructors are ignored. If not enough fields or constructors are provided,
-the function may error or silently break the t'Translator'.
+Errors if the number of constructors/fields does not match the structure of the 'Translator'.
 -}
 renameFields :: [[String]] -> Translator -> Translator
 renameFields names (Translator w (TStyled s t)) = Translator w $ TStyled s $ renameFields names t
 renameFields names (Translator w (TDuplicate n t)) = Translator w $ TDuplicate n $ renameFields names t
-renameFields names (Translator w (TSum subs)) = Translator w $ TSum $ L.zipWith (\n t -> renameFields [n] t) names subs
-renameFields names (Translator w p@TProduct{subs}) = Translator w p{subs = L.zipWith (\n (_, t) -> (n, t)) (names L.!! 0) subs}
+renameFields names (Translator w (TSum subs)) =
+  Translator w
+    $ TSum
+    $ erroringZipWith
+      ("Incorrect number of constructors:" <> show names)
+      (\n t -> renameFields [n] t)
+      names
+      subs
+renameFields names (Translator w p@TProduct{subs}) =
+  Translator
+    w
+    p
+      { subs =
+          erroringZipWith
+            ("Incorrect number of fields" <> show fieldNames)
+            (\n (_, t) -> (n, t))
+            fieldNames
+            subs
+      }
+ where
+  fieldNames = case names of
+    [x] -> x
+    _ -> error ("Incorrect number of constructors: " <> show names)
 renameFields _ t = t
 
 ------------------------------------------- GENERIC -------------------------------------

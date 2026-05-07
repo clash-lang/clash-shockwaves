@@ -42,7 +42,7 @@ which you might want to be `x` and `y` instead.
 
 In this case, you can use `renameFields`. Rename fields takes a list with for every constructor
 a list of field names. Note that lengths of these lists must match the number of constructors and fields
-exactly, or the resulting translator will be broken.
+exactly, or the function will error.
 
 For example:
 
@@ -52,3 +52,6 @@ data Point = Point Int Int deriving (...)
 instance Waveform Point where
     translator = renameFields [["x","y"]] $ defaultTranslator @Point []
 ```
+
+Also note that this function will not rename the field names inside a record;
+it only renames the subsignals that are created for these fields.
