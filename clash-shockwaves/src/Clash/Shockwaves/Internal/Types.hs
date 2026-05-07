@@ -325,9 +325,13 @@ data BitPart
     BPReverse BitPart
   | -- | Invert 0 and 1.
     BPInvert BitPart
-  | -- | Bitwise and. If multiple values of different lengths are provided, values are zero-padded on the left.
+  | {- | Bitwise and. If values of different lengths are provided, values are zero-padded on the left.
+    Short-cirtuits (@x & 0 = 0@).
+    -}
     BPAnd [BitPart]
-  | -- | Bitwise or. If multiple values of different lengths are provided, values are zero-padded on the left.
+  | {- | Bitwise or. If values of different lengths are provided, values are zero-padded on the left.
+    Short-cirtuits (@x | 1 = 1@).
+    -}
     BPOr [BitPart]
   | -- | Bitwise xor. If multiple values of different lengths are provided, values are zero-padded on the left.
     BPXor [BitPart]

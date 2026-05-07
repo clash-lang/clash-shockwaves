@@ -115,10 +115,12 @@ hasUndefined (BL m _ _) = m /= 0
 
 instance Bits BitList where
   -- binary operations are right-aligned when not equal in length
-  (.&.) (BL ma ia la) (BL mb ib lb) = BL (ma .|. mb) (ia .&. ib) (max la lb)
-  (.|.) (BL ma ia la) (BL mb ib lb) = BL m ((ia .|. ib .|. m) - m) (max la lb)
+  -- & and | short circuit on unknowns (0 & x = 0, 1 | x = 1)
+  (.&.) (BL ma ia la) (BL mb ib lb) = BL ((ma .&. mb) .|. (ma .&. ib) .|. (ia .&. mb)) (ia .&. ib) (max la lb)
+  (.|.) (BL ma ia la) (BL mb ib lb) = BL ((ma .|. mb) .&. (mask l - v)) v l
    where
-    m = ma .|. mb
+    l = max la lb
+    v = ia .|. ib
   xor (BL ma ia la) (BL mb ib lb) = BL m (((ia `xor` ib) .|. m) - m) (max la lb)
    where
     m = ma .|. mb

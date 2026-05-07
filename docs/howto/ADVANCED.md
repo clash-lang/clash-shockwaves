@@ -149,7 +149,9 @@ for creating binary values.
 - `BPReverse`: reverse the order of bits
 - `BPInvert`: flip all bits
 - `BPAnd`, `BPOr` and `BPXor`: compute the bitwise logical and/or/xor of multiple binary values
-  Note that if these do not have equal lengths, the value is padded to the left with `0`
+  
+  Note that if these do not have equal lengths, the value is padded to the left with `0`,
+  and that `And` and `Or` short-circuit (i.e. `0 & x = 0`, and `x | 1 = 1`).
 - `BPOneHot` and `BPNHot`: interpret bits as an integer, and generate a 1-hot/n-hot binary value
 - `If`: select the binary value based on the first bit of a condition value
 

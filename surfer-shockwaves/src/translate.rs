@@ -263,20 +263,24 @@ impl BitPart {
                     BitPart::And(..) => transposed
                         .into_iter()
                         .map(|bs| {
-                            if bs.contains(&'x') {
+                            if bs.contains(&'0') {
+                                '0'
+                            } else if bs.contains(&'x') {
                                 'x'
                             } else {
-                                b2c(bs.iter().all(|b| *b == '1'))
+                                '1'
                             }
                         })
                         .collect(),
                     BitPart::Or(..) => transposed
                         .into_iter()
                         .map(|bs| {
-                            if bs.contains(&'x') {
+                            if bs.contains(&'1') {
+                                '1'
+                            } else if bs.contains(&'x') {
                                 'x'
                             } else {
-                                b2c(bs.contains(&'1'))
+                                '0'
                             }
                         })
                         .collect(),
