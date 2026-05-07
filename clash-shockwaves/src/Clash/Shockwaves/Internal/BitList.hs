@@ -12,9 +12,10 @@ module Clash.Shockwaves.Internal.BitList where
 
 import qualified Clash.Class.BitPack as BP
 import Clash.Prelude hiding (concat, drop, pack, split, take, unpack)
-import Clash.Sized.Internal.BitVector
+import Clash.Sized.Internal.BitVector hiding (unsafeMask)
 import Data.Aeson hiding (Value)
 import Data.Aeson.Types (toJSONKeyText)
+import Data.Either (isLeft)
 import Data.String (IsString (fromString))
 import qualified Data.Text as Text
 
@@ -114,7 +115,7 @@ hasUndefined :: BitList -> Bool
 hasUndefined (BL m _ _) = m /= 0
 
 instance Bits BitList where
-  -- binary operations are right-aligned when not equal
+  -- binary operations are right-aligned when not equal in length
   (.&.) (BL ma ia la) (BL mb ib lb) = BL (ma .|. mb) (ia .&. ib) (max la lb)
   (.|.) (BL ma ia la) (BL mb ib lb) = BL m ((ia .|. ib .|. m) - m) (max la lb)
    where
@@ -123,15 +124,24 @@ instance Bits BitList where
    where
     m = ma .|. mb
 
-  complement (BL m i l) = BL m (((((1 `shiftL` l) - 1) - i) .|. m) - m) l
-  shift (BL m i l) a = BL (shift m a) (shift i a) l
-  rotate (BL m i l) a = BL (rotate m a) (rotate i a) l
+  complement (BL m i l) = BL m (mask l `xor` (i .|. m)) l
+  shift (BL m i l) a = BL (shift m a .&. mask l) (shift i a .&. mask l) l
+  rotate (BL m i l) a =
+    BL
+      ((shift m a' .|. shift m (a' - l)) .&. mask l)
+      ((shift i a' .|. shift i (a' - l)) .&. mask l)
+      l
+   where
+    a' = a `mod` l
   bitSize (BL _ _ l) = l
   bitSizeMaybe (BL _ _ l) = Just l
   isSigned _ = False
   testBit (BL _ i _) = testBit i
   bit n = BL 0 (bit n) (n + 1)
   popCount (BL _ i _) = popCount i
+
+mask :: Int -> Natural
+mask l = (1 `shiftL` l) - 1
 
 instance Semigroup BitList where
   (<>) = concat
