@@ -5,6 +5,41 @@
 
 packages:
 - completed:
+    hackage: clash-prelude-1.10.0@sha256:69daccb6c9066bac22846e59fc34a3335181c7b3d946715d2cb3204e42391d92,18110
+    pantry-tree:
+      sha256: 5db958e7047bc01a5b2939a5d0cee1a39b6e25e1199042535eef7482ab4af72a
+      size: 14283
+  original:
+    hackage: clash-prelude-1.10.0@sha256:69daccb6c9066bac22846e59fc34a3335181c7b3d946715d2cb3204e42391d92,18110
+- completed:
+    hackage: ghc-typelits-extra-0.5.3@sha256:4fae3c698c15132181a431e52f95aa8f655dc78bcd2a5fdf35a7e222eb7d2d19,5830
+    pantry-tree:
+      sha256: 0685fca049f88038b7a228883df3aab85b8fcde034d6dd39c915199c47fd8336
+      size: 831
+  original:
+    hackage: ghc-typelits-extra-0.5.3@sha256:4fae3c698c15132181a431e52f95aa8f655dc78bcd2a5fdf35a7e222eb7d2d19,5830
+- completed:
+    hackage: ghc-typelits-knownnat-0.8.3@sha256:84114e2d8a4389c37921ed1b3dd030c6acd8af0eb47d5cb516e3a374ade0f9b4,5993
+    pantry-tree:
+      sha256: b67be656abe93092d211dbef15d04ad586f4e3eee8cbd73b13ed4c7421859504
+      size: 678
+  original:
+    hackage: ghc-typelits-knownnat-0.8.3@sha256:84114e2d8a4389c37921ed1b3dd030c6acd8af0eb47d5cb516e3a374ade0f9b4,5993
+- completed:
+    hackage: ghc-typelits-natnormalise-0.9.5@sha256:692d7a936ecee9e3a994f0a60d136be1f03137d38aca90f03b8efcb40bed90ca,3973
+    pantry-tree:
+      sha256: 41e54639bddfdf1d4e225ec22cf6bf29a8faa9172a1bbc5a9fdb40cb4b817466
+      size: 757
+  original:
+    hackage: ghc-typelits-natnormalise-0.9.5@sha256:692d7a936ecee9e3a994f0a60d136be1f03137d38aca90f03b8efcb40bed90ca,3973
+- completed:
+    hackage: ghc-tcplugin-api-0.18.2.1@sha256:a5e1e7019f94203508a9a398cf1210ec813d2e11a880d325b0259985dbf7b02a,5426
+    pantry-tree:
+      sha256: fe36bb136bb7e8b487162865967238120e46cec121f75d74a6c32e6d26744f35
+      size: 575
+  original:
+    hackage: ghc-tcplugin-api-0.18.2.1@sha256:a5e1e7019f94203508a9a398cf1210ec813d2e11a880d325b0259985dbf7b02a,5426
+- completed:
     hackage: Cabal-syntax-3.16.0.0@sha256:6a35036763557301876c5b7a448de4f1cb54fe1e223ff6c4c0c1fdd6df635a65,7509
     pantry-tree:
       sha256: 4de976261238dd4045dd3addebf6a006d4aff3873ee680bac7af83dcbf068280
