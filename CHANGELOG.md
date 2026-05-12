@@ -1,4 +1,8 @@
-# v1.0.0 *07 Apr 2026*
+## 1.0.1 - *11 May, 2026*
+
+Shockwaves now supports Clash 1.10!
+
+## v1.0.0 *07 Apr 2026*
 
 The first official full release!
 
@@ -7,7 +11,7 @@ Furthermore, many changes were made behind the scenes to make the project more m
 The system is now fully usable with no (known) bugs,
 but more features and improvements are already on their way!
 
-Added:
+### Added:
 - Added several options for rendering numbers.
   [#52](https://github.com/clash-lang/clash-shockwaves/issues/52)
   [#49](https://github.com/clash-lang/clash-shockwaves/issues/49)
@@ -21,7 +25,7 @@ Added:
 - Linked the HOWTO guides on GitHub in the Haddock documentation.
 - A permanent downloads of the Surfer extension is now available on the GitHub release page.
 
-Changed:
+### Changed:
 - Renamed the `shockwaves` library to `clash-shockwaves`, and `surfer_shockwaves` to `surfer-shockwaves` to match.
   [#70](https://github.com/clash-lang/clash-shockwaves/issues/70)
 - Adding a config file is now part of the setup guide too.
@@ -38,7 +42,7 @@ Changed:
   [#78](https://github.com/clash-lang/clash-shockwaves/issues/78)
 - The source code is now formatted using Fourmolu.
 
-Fixed:
+### Fixed:
 - When (advanced) sum translators have multiple translators that generate subsignals with the same name,
   these are now merged recursively, instead of being added separately.
   [#36](https://github.com/clash-lang/clash-shockwaves/issues/36)
@@ -48,23 +52,23 @@ Fixed:
   [#72](https://github.com/clash-lang/clash-shockwaves/issues/72)
 - Made the code compatible with the stack LTS-23.28 resolver (GHC 9.8.4).
 
-# v0.0.1hd *04 Mar 2026*
+## v0.0.1hd *04 Mar 2026*
 
-Added:
+### Added:
 - Added proper links and instructions for adding dependencies to the setup HOWTO guide.
   [#41](https://github.com/clash-lang/clash-shockwaves/issues/41)
   
 
-Changed:
+### Changed:
 - Loosened clash version constraints to allow versions 1.8.2 and 1.8.3.
   [#40](https://github.com/clash-lang/clash-shockwaves/issues/40)
 
-Fixed:
+### Fixed:
 - After renaming `traceMap#` to `maps#`, an annotation was left; this has been fixed.
   [#39](https://github.com/clash-lang/clash-shockwaves/issues/39)
 - `Maybe` accidentally used style variable `$maybe_just` instead of `maybe_just`.
   [#38](https://github.com/clash-lang/clash-shockwaves/issues/38)
 
-# v0.0.0hsd *04 Mar 2026*
+## v0.0.0hsd *04 Mar 2026*
 
 Initial release.
