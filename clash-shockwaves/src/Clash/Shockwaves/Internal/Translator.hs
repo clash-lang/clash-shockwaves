@@ -20,7 +20,7 @@ import Data.Bifunctor (first)
 import qualified Data.List as L
 import Data.List.Extra (chunksOf)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isJust, listToMaybe, isNothing)
+import Data.Maybe (fromMaybe, isJust, isNothing, listToMaybe)
 import Data.String (IsString (fromString))
 import Data.Tuple.Extra (second)
 import Math.NumberTheory.Logarithms (intLog2)
