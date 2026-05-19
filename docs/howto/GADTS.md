@@ -20,7 +20,7 @@ This is the `Waveform` instance for `Vec` inside `Clash.Shockwaves.Internal.Wave
 
 ```hs
 instance (KnownNat n, Waveform a) => Waveform (Vec n a) where
-  translator = Translator (width @(Vec n a)) $ if natVal (Proxy @n) /= 0 then
+  translator = Translator (bitSize @(Vec n a)) $ if natVal (Proxy @n) /= 0 then
     TArray
       { start = ""
       , sep = " :> "

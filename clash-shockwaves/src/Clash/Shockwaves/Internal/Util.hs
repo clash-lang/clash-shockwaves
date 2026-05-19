@@ -51,8 +51,8 @@ writeFileJSON :: forall a. (ToJSON a) => FilePath -> a -> IO ()
 writeFileJSON = encodeFile
 
 -- | Returns the 'BitSize' of a type as a runtime 'Int'.
-bitsize :: forall a. (BitPack a) => Int
-bitsize = fromInteger $ natVal $ Proxy @(BitSize a)
+bitSize :: forall a. (BitPack a) => Int
+bitSize = fromInteger $ natVal $ Proxy @(BitSize a)
 
 -- | Wrap parentheses around a value.
 parenthesize :: Value -> Value

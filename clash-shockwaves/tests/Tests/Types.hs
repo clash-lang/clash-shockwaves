@@ -4,7 +4,7 @@
 
 module Tests.Types where
 
-import Clash.Prelude
+import Clash.Prelude hiding (bitSize)
 import Clash.Shockwaves.LUT
 import Clash.Shockwaves.Waveform
 import Data.Typeable
@@ -71,10 +71,10 @@ newtype Pointer a = Pointer (Unsigned a)
 
 instance (KnownNat a) => Waveform (Pointer a) where
   translator =
-    Translator (width @(Unsigned a))
+    Translator (bitSize @(Unsigned a))
       $ TAdvancedSum
-        { index = (0, width @(Unsigned a))
-        , defTrans = Translator (width @(Unsigned a)) $ TNumber NFHex (Just (2, "_")) "0X" False
+        { index = (0, bitSize @(Unsigned a))
+        , defTrans = Translator (bitSize @(Unsigned a)) $ TNumber NFHex (Just (2, "_")) "0X" False
         , rangeTrans = [((0, 1), tConst $ Just ("NULL", WSWarn, 11))]
         }
 
@@ -82,14 +82,14 @@ newtype NumRep a = NumRep a deriving (Generic, BitPack, NFDataX, Typeable, ShowX
 
 instance (Waveform a) => Waveform (NumRep a) where
   translator =
-    Translator (width @a)
+    Translator (bitSize @a)
       $ TAdvancedProduct
         { sliceTrans =
             L.map
-              ((0, width @a),)
+              ((0, bitSize @a),)
               ( tRef @a
                   : L.map
-                    (Translator (width @a))
+                    (Translator (bitSize @a))
                     [ TNumber NFBin (Just (4, "_")) "0b" False
                     , TNumber NFOct (Just (4, "_")) "0o" False
                     , TNumber NFHex (Just (2, "_")) "0X" False
@@ -97,7 +97,7 @@ instance (Waveform a) => Waveform (NumRep a) where
                     , TNumber NFSig (Just (3, "_")) "" False
                     ]
               )
-              <> [((width @a - 1, width @a), tRef @Bool)]
+              <> [((bitSize @a - 1, bitSize @a), tRef @Bool)]
         , hierarchy =
             [("bin", 1), ("oct", 2), ("hex", 3), ("unsigned", 4), ("signed", 5), ("odd", 6)]
         , valueParts = [VPLit "{", VPRef 0 (-1), VPLit ", odd=", VPRef 6 (-1), VPLit "}"]

@@ -17,7 +17,7 @@ The 'Waveform' class, functions derived from it, special 'Waveform' variants suc
 -}
 module Clash.Shockwaves.Internal.Waveform where
 
-import Clash.Prelude
+import Clash.Prelude hiding (bitSize)
 
 import Clash.Shockwaves.BitList (BitList)
 import qualified Clash.Shockwaves.BitList as BL
@@ -112,7 +112,7 @@ tDup name (Translator w t) = Translator w $ TDuplicate name (Translator w t)
 -- | Generate a translator reference for a type.
 tRef :: forall a. (Waveform a) => Translator
 tRef =
-  Translator (width @a)
+  Translator (bitSize @a)
     $ TRef
       (typeName @a)
       TypeRef
@@ -136,7 +136,7 @@ tLut l = case l of
 -- | Create a LUT translator for a type, using the translation function of 'WaveformLUT'.
 tGeneratedLut :: forall a. (Waveform a, WaveformLUT a) => Translator
 tGeneratedLut =
-  Translator (width @a)
+  Translator (bitSize @a)
     $ TLut
       (typeName @a)
       Nothing
@@ -149,7 +149,7 @@ tGeneratedLut =
 -- | Create a LUT translator for a type, using the static LUT in 'WaveformLUT'.
 tStaticLut :: forall a. (Waveform a, WaveformLUT a) => LUT -> Translator
 tStaticLut lut =
-  Translator (width @a)
+  Translator (bitSize @a)
     $ TLut
       (typeName @a)
       (Just lut)
@@ -160,6 +160,8 @@ tStaticLut lut =
         }
 
 ------------------------------------------ WAVEFORM --------------------------------------
+
+{-# DEPRECATED width "Use bitSize instead" #-}
 
 {- |
 
@@ -196,16 +198,18 @@ class (Typeable a, BitPack a) => Waveform a where
   styles :: [WaveStyle]
   styles = []
 
-  -- | Runtime bitsize of the type.
+  {- |
+  Defines the width of the translator based on @bitSize@
+  -}
   width :: Int
-  width = bitsize @a
+  width = bitSize @a
 
 {- | Return the default translator that is derived for a data type.
 This default can be modified to obtain a slightly different translator.
 -}
 defaultTranslator ::
   forall a. (Waveform a, WaveformG (Rep a ())) => [WaveStyle] -> Translator
-defaultTranslator sty = translatorG @(Rep a ()) (width @a) (sty <> L.repeat WSDefault)
+defaultTranslator sty = translatorG @(Rep a ()) (bitSize @a) (sty <> L.repeat WSDefault)
 
 {- | Function to translate values. This function creates a translation from
 the binary representation of the data using translateBin, and the translator.
@@ -527,7 +531,7 @@ instance
   constrTranslatorsG = undefined
   fieldTranslatorsG = [(sym @name, tRef @t)]
 
-  widthG = width @t
+  widthG = bitSize @t
 
   translateWithG _ _ = undefined
   translateFieldsG x = [(sym @name, translate $ unK1 $ unM1 x)]
@@ -538,7 +542,7 @@ instance (Waveform t) => WaveformG (S1 (MetaSel Nothing p q r) (Rec0 t) k) where
   constrTranslatorsG = undefined
   fieldTranslatorsG = [("", tRef @t)]
 
-  widthG = width @t
+  widthG = bitSize @t
 
   translateWithG _ _ = undefined
   translateFieldsG x = [("", translate $ unK1 $ unM1 x)]
@@ -770,7 +774,7 @@ instance
   Waveform (WaveformForConst a)
   where
   typeName = defaultTypeName @a
-  translator = Translator (bitsize @a) $ TConst $ constTrans @a
+  translator = Translator (bitSize @a) $ TConst $ constTrans @a
 
 -- NUMBERS
 
@@ -801,7 +805,7 @@ instance
   where
   typeName = defaultTypeName @a
   translator =
-    Translator (width @(WaveformForNumber f s a))
+    Translator (bitSize @(WaveformForNumber f s a))
       $ TNumber
         { format = formatVal (Proxy @f)
         , spacer = spacerVal (Proxy @s)
@@ -953,7 +957,7 @@ instance (Waveform a) => Waveform (Erroring a) where
 -- vectors
 instance (KnownNat n, Waveform a) => Waveform (Vec n a) where
   translator =
-    Translator (width @(Vec n a))
+    Translator (bitSize @(Vec n a))
       $ if natVal (Proxy @n) /= 0
         then
           TArray
@@ -1019,7 +1023,7 @@ instance
   WaveformRTree False d a
   where
   translatorRTree =
-    Translator (bitsize @(RTree d a))
+    Translator (bitSize @(RTree d a))
       $ TProduct
         { start = "<"
         , sep = ","
@@ -1037,7 +1041,7 @@ This function will error if called for a type that has more than one constructor
 -}
 tupleTranslator :: forall t. (BitPack t, WaveformG (Rep t ())) => Translator
 tupleTranslator =
-  Translator (bitsize @t)
+  Translator (bitSize @t)
     $ TProduct
       { start = "("
       , sep = ","

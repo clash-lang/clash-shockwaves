@@ -178,7 +178,7 @@ configuration is possible. For example, `Maybe a` would by default get a transla
 like this:
 
 ```hs
-translator = Translator (width @(Maybe a)) $ TSum
+translator = Translator (bitSize @(Maybe a)) $ TSum
   [ tDup "Nothing" $ Translator 0 $ TConst $ Translation (Just ("Nothing",_,11)) []
   , tDup "Just" $ _ $ TProduct
       { subs = [(Just "0", tRef @a)] 
@@ -200,7 +200,7 @@ But instead, to reduce unnecessary subsignal clutter, it looks like this:
 ```hs
 translator = Translator _ $ TSum
   [ Translator 0 $ TConst $ Translation (Just ("Nothing","$maybe_nothing",11)) []
-  , Translator (width @a) $ TProduct
+  , Translator (bitSize @a) $ TProduct
       { subs = [(Just "Just.0", tRef @a)] 
       , start = "Just ", sep = "", stop = "", labels = []
       , preci = 10, preco = 10
