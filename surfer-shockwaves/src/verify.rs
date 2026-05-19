@@ -8,13 +8,11 @@
 
 use std::collections::HashMap;
 
-use either::Either::Left;
 use extism_pdk::{error, warn};
 
 use crate::data::*;
 use crate::state::State;
 use crate::util::CLog;
-use crate::util::USIZE_BITS;
 
 impl State {
     pub fn verify(&mut self) {
