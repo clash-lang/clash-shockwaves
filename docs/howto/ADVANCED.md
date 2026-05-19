@@ -133,19 +133,27 @@ You can use this translator when you need to:
 
 - reorder bits
 - add or remove bits
-- detect undefinedness *
-- change from a number to one-hot *
-- perform basic binary operations *
-- and many more *
-
-> (*) To be added
+- detect undefinedness
+- change from a number to one-hot
+- perform basic binary operations
+- and many more
 
 The translator is based on the BitPart type, which has a number of variants
 for creating binary values.
 
+- `BPIn`: return the input binary
 - `BPConcat`: concatenate the binary values produced by its children
 - `BPLit`: return literal bits
-- `BPSlice`: return a slice of the input bits
+- `BPSlice`: return a slice of the bits produced by its child `BitPart`
+- `BPHasUndefined`: return `1` if any bit is undefined, and `0` otherwise
+- `BPReverse`: reverse the order of bits
+- `BPInvert`: flip all bits
+- `BPAnd`, `BPOr` and `BPXor`: compute the bitwise logical and/or/xor of multiple binary values
+  
+  Note that if these do not have equal lengths, the value is padded to the left with `0`,
+  and that `And` and `Or` short-circuit (i.e. `0 & x = 0`, and `x | 1 = 1`).
+- `BPOneHot` and `BPNHot`: interpret bits as an integer, and generate a 1-hot/n-hot binary value
+- `If`: select the binary value based on the first bit of a condition value
 
 Say we have a type `LittleEndian` that is just a 24 bit number, and we want to
 display the bytes in hexadecimal format, starting with the least significant byte

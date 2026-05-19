@@ -130,7 +130,7 @@ tLut _ =
     $ TLut
       (typeName @a)
       TypeRef
-        { translateBinRef = translateL @a . BL.binUnpack
+        { translateBinRef = translateL @a . BL.unpack
         , structureRef = structureL @a
         , translatorRef = translator @a
         }
@@ -187,7 +187,7 @@ defaultTranslator sty = translatorG @(Rep a ()) (width @a) (sty <> L.repeat WSDe
 the binary representation of the data using translateBin, and the translator.
 -}
 translate :: forall a. (Waveform a, BitPack a) => a -> Translation
-translate = translateBin @a . BL.binPack
+translate = translateBin @a . BL.pack
 
 {- | Translate binary data.
 Normally, this simply translates the value according to the translator.
@@ -215,7 +215,7 @@ structure = structureT $ translator @a
 
 -- | Add all (sub) values that use 'TLut' to their respective LUTs.
 addValue :: forall a. (Waveform a) => a -> [LUTMap -> LUTMap]
-addValue = addValueT (translator @a) . BL.binPack
+addValue = addValueT (translator @a) . BL.pack
 
 -- translator modification
 
