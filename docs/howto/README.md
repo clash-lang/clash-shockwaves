@@ -7,6 +7,7 @@ To get started, read [How to set up Shockwaves](SETUP.md) and [How to get typed 
 
 Other guides:
 - [How to use colors to improve clarity](STYLES.md)
+- [How to modify the default translator](DEFAULT.md)
 - [How to add clock and other domain signals](DOMAINS.md)
 - [How to customize Shockwaves behaviour](CONFIG.md)
 

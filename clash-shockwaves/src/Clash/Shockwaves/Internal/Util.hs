@@ -155,3 +155,9 @@ errorT e = Translation (errorR e) []
 -- | Add a translator by name to the type map.
 addType :: String -> Translator -> (TypeMap -> TypeMap)
 addType = M.insert
+
+-- | `zipWith` variant that errors on lists of different length
+erroringZipWith :: String -> (a -> b -> c) -> [a] -> [b] -> [c]
+erroringZipWith _ _ [] [] = []
+erroringZipWith e f (x : xs) (y : ys) = f x y : erroringZipWith e f xs ys
+erroringZipWith e _ _ _ = error e

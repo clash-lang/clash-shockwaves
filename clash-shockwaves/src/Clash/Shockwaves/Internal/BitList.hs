@@ -10,8 +10,9 @@ Dynamically sized bitvectors.
 -}
 module Clash.Shockwaves.Internal.BitList where
 
-import Clash.Prelude hiding (concat, drop, split, take)
-import Clash.Sized.Internal.BitVector
+import qualified Clash.Class.BitPack as BP
+import Clash.Prelude hiding (concat, drop, pack, split, take, unpack)
+import Clash.Sized.Internal.BitVector hiding (unsafeMask)
 import Data.Aeson hiding (Value)
 import Data.Aeson.Types (toJSONKeyText)
 import Data.String (IsString (fromString))
@@ -43,6 +44,10 @@ instance Show BitList where
     showBit 0 1 = '1'
     showBit _ _ = 'x'
 
+-- | Return the length of the 'BitList'.
+length :: BitList -> Int
+length (BL _ _ l) = l
+
 -- | Convert a 'BitVector' into a 'BitList'.
 bvToBl :: (KnownNat n) => BitVector n -> BitList
 bvToBl (BV @n m i) = BL m i (natToNum @n)
@@ -55,12 +60,12 @@ blToBv (BL m i l) | natToNum @n == l = BV m i
 blToBv _ = errorX "BitList does not match BitVector size"
 
 -- | Pack a value into a 'BitList'.
-binPack :: (BitPack a) => a -> BitList
-binPack = bvToBl . pack
+pack :: (BitPack a) => a -> BitList
+pack = bvToBl . BP.pack
 
 -- | Unpack a value from a 'BitList'.
-binUnpack :: (BitPack a) => BitList -> a
-binUnpack = unpack . blToBv
+unpack :: (BitPack a) => BitList -> a
+unpack = BP.unpack . blToBv
 
 -- | Discard the /n/ most significant bits.
 drop :: Int -> BitList -> BitList
@@ -104,6 +109,40 @@ slice (from, to) = drop from . take to
 toInteger :: BitList -> Maybe Integer
 toInteger (BL m i _) | m == 0 = Just $ fromIntegral i
 toInteger _ = Nothing
+
+hasUndefined :: BitList -> Bool
+hasUndefined (BL m _ _) = m /= 0
+
+instance Bits BitList where
+  -- binary operations are right-aligned when not equal in length
+  -- & and | short circuit on unknowns (0 & x = 0, 1 | x = 1)
+  (.&.) (BL ma ia la) (BL mb ib lb) = BL ((ma .&. mb) .|. (ma .&. ib) .|. (ia .&. mb)) (ia .&. ib) (max la lb)
+  (.|.) (BL ma ia la) (BL mb ib lb) = BL ((ma .|. mb) .&. (mask l - v)) v l
+   where
+    l = max la lb
+    v = ia .|. ib
+  xor (BL ma ia la) (BL mb ib lb) = BL m (((ia `xor` ib) .|. m) - m) (max la lb)
+   where
+    m = ma .|. mb
+
+  complement (BL m i l) = BL m (mask l `xor` (i .|. m)) l
+  shift (BL m i l) a = BL (shift m a .&. mask l) (shift i a .&. mask l) l
+  rotate (BL m i l) a =
+    BL
+      ((shift m a' .|. shift m (a' - l)) .&. mask l)
+      ((shift i a' .|. shift i (a' - l)) .&. mask l)
+      l
+   where
+    a' = a `mod` l
+  bitSize (BL _ _ l) = l
+  bitSizeMaybe (BL _ _ l) = Just l
+  isSigned _ = False
+  testBit (BL _ i _) = testBit i
+  bit n = BL 0 (bit n) (n + 1)
+  popCount (BL _ i _) = popCount i
+
+mask :: Int -> Natural
+mask l = (1 `shiftL` l) - 1
 
 instance Semigroup BitList where
   (<>) = concat

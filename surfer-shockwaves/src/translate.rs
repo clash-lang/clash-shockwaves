@@ -5,6 +5,7 @@ use surfer_translation_types::TranslationResult;
 
 use lazy_static::lazy_static;
 use num_bigint::{BigInt, BigUint};
+use std::cmp::Ordering;
 use std::iter::zip;
 
 use crate::data::*;
@@ -44,7 +45,7 @@ fn translate_number(
     value: &str,
     format: &NumberFormat,
     spacer: &NumberSpacer,
-    prefix: &String,
+    prefix: &str,
     warn: bool,
 ) -> Translation {
     let apply_spacer = |v: String| match spacer {
@@ -170,6 +171,18 @@ fn translate_number(
     )
 }
 
+impl NumberFormat {
+    fn default_prefix(&self) -> &str {
+        match self {
+            NumberFormat::Sig(_) => "S:",
+            NumberFormat::Uns => "U:",
+            NumberFormat::Hex => "H:",
+            NumberFormat::Oct => "O:",
+            NumberFormat::Bin => "B:",
+        }
+    }
+}
+
 impl ValuePart {
     /// Determine the value of a value part.
     fn make_value(&self, translations: &[Translation]) -> String {
@@ -209,7 +222,6 @@ impl BitPart {
                         .concat(),
                 )
             }
-
             BitPart::Lit(s) => StringLike::Slice(s),
             BitPart::Slice((from, to), bp) => match bp.from(bits) {
                 StringLike::Full(s) if s.len() >= *to => {
@@ -217,6 +229,111 @@ impl BitPart {
                 }
                 StringLike::Slice(s) if s.len() >= *to => StringLike::Slice(&s[*from..*to]),
                 _ => StringLike::Full("x".repeat(*to - *from)),
+            },
+            BitPart::HasUndefined(bp) => {
+                StringLike::Slice(if bp.from(bits).as_ref().contains('x') {
+                    "1"
+                } else {
+                    "0"
+                })
+            }
+            BitPart::Reverse(bp) => {
+                StringLike::Full(bp.from(bits).as_ref().chars().rev().collect())
+            }
+            BitPart::Invert(bp) => StringLike::Full(
+                bp.from(bits)
+                    .as_ref()
+                    .chars()
+                    .map(|b| match b {
+                        '1' => '0',
+                        '0' => '1',
+                        _ => 'x',
+                    })
+                    .collect(),
+            ),
+            BitPart::And(bps) | BitPart::Or(bps) | BitPart::Xor(bps) => {
+                let mut parts = bps.iter().map(|bp| bp.from(bits)).collect::<Vec<_>>();
+                let n = parts.iter().map(|b| b.as_ref().len()).max().unwrap();
+                parts.iter_mut().for_each(|b| {
+                    let l = b.as_ref().len();
+                    if l != n {
+                        *b = StringLike::Full("0".repeat(n - l) + b.as_ref());
+                    }
+                });
+
+                let transposed = (0..n)
+                    .map(|i| {
+                        parts
+                            .iter()
+                            .map(|b| b.as_ref().chars().nth(i).unwrap())
+                            .collect()
+                    })
+                    .collect::<Vec<Vec<_>>>();
+
+                fn b2c(b: bool) -> char {
+                    if b { '1' } else { '0' }
+                }
+
+                StringLike::Full(match self {
+                    BitPart::And(..) => transposed
+                        .into_iter()
+                        .map(|bs| {
+                            if bs.contains(&'0') {
+                                '0'
+                            } else if bs.contains(&'x') {
+                                'x'
+                            } else {
+                                '1'
+                            }
+                        })
+                        .collect(),
+                    BitPart::Or(..) => transposed
+                        .into_iter()
+                        .map(|bs| {
+                            if bs.contains(&'1') {
+                                '1'
+                            } else if bs.contains(&'x') {
+                                'x'
+                            } else {
+                                '0'
+                            }
+                        })
+                        .collect(),
+                    BitPart::Xor(..) => transposed
+                        .into_iter()
+                        .map(|bs| {
+                            if bs.contains(&'x') {
+                                'x'
+                            } else {
+                                b2c(bs.iter().filter(|b| **b == '1').count() & 1 == 1)
+                            }
+                        })
+                        .collect(),
+                    _ => unreachable!(),
+                })
+            }
+            BitPart::OneHot((f, t), bp) | BitPart::NHot((f, t), bp) => {
+                let k = match usize::from_str_radix(bp.from(bits).as_ref(), 2) {
+                    Ok(k) => k,
+                    Err(_) => {
+                        return StringLike::Full("x".repeat(t - f));
+                    }
+                };
+
+                StringLike::Full(
+                    (*f..*t)
+                        .map(|i| match (i.cmp(&k), self) {
+                            (Ordering::Less, BitPart::NHot(..)) => '1',
+                            (Ordering::Equal, _) => '1',
+                            _ => '0',
+                        })
+                        .collect(),
+                )
+            }
+            BitPart::If { t, f, x, c } => match c.from(bits).as_ref().chars().nth(0) {
+                Some('1') => t.from(bits),
+                Some('0') => f.from(bits),
+                _ => x.from(bits),
             },
         }
     }
@@ -360,6 +477,11 @@ impl State {
                 prefix,
                 warn,
             } => {
+                let (format, spacer, prefix) = self
+                    .config
+                    .get_format_override()
+                    .map(|f| (f, &None, f.default_prefix()))
+                    .unwrap_or((format, spacer, prefix));
                 let spacer = self.config.get_spacer_override(format).unwrap_or(spacer);
                 translate_number(value, format, spacer, prefix, *warn)
             }
