@@ -19,3 +19,5 @@ impl CLog for u128 {
         u128::BITS - (self - 1).leading_zeros()
     }
 }
+
+pub const USIZE_BITS: u32 = 0usize.count_zeros();

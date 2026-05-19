@@ -8,11 +8,13 @@
 
 use std::collections::HashMap;
 
+use either::Either::Left;
 use extism_pdk::{error, warn};
 
 use crate::data::*;
 use crate::state::State;
 use crate::util::CLog;
+use crate::util::USIZE_BITS;
 
 impl State {
     pub fn verify(&mut self) {
@@ -235,7 +237,7 @@ impl TranslatorVariant {
                 sub.verify(source, translators)
             }
             TranslatorVariant::ChangeBits { sub, bits } => {
-                let b = bits.verify(width, source);
+                let b = bits.verify(width, source)?;
                 match b {
                     Some(w) if w < sub.width => error!(
                         "SHOCKWAVES: ChangeBits translator for {source:?} produces insufficient bits for subtranslator"
@@ -260,9 +262,9 @@ impl TranslatorVariant {
 
 impl BitPart {
     /// verify a BitPart, returning the bitsize if known
-    pub fn verify(&mut self, inputsize: u32, source: &str) -> Option<u32> {
+    pub fn verify(&mut self, inputsize: u32, source: &str) -> Result<Option<u32>, &str> {
         match self {
-            BitPart::In => Some(inputsize),
+            BitPart::In => Ok(Some(inputsize)),
             BitPart::Lit(l) => {
                 *l = l
                     .chars()
@@ -270,27 +272,82 @@ impl BitPart {
                         if "01x".contains(c) {
                             c
                         } else {
-                            error!("SHOCKWAVES: Unknown character in BitPart literal");
+                            error!("SHOCKWAVES: ChangeBits BitPart literal for {source:?} contains unknown character {c:?}");
                             'x'
                         }
                     })
                     .collect();
-                Some(l.len() as u32)
+                Ok(Some(l.len() as u32))
             }
-            BitPart::Concat(subs) => subs
+            BitPart::Concat(subs) => Ok(subs
                 .iter_mut()
                 .map(|s| s.verify(inputsize, source))
-                .collect::<Option<Vec<u32>>>()
-                .map(|v| v.iter().sum()),
+                .collect::<Result<Option<Vec<_>>, &str>>()?
+                .map(|v| v.iter().sum())),
             BitPart::Slice((from, to), sub) => {
-                match sub.verify(inputsize, source) {
-                    Some(w) if w < *to as u32 => error!(
-                        "SHOCKWAVES: BitPart Slice in ChangeBits translator for {source:?} has insufficient bits to slice"
-                    ),
+                match sub.verify(inputsize, source)? {
+                    Some(w) if w < *to as u32 => return Err("Slice receives insufficient bits"),
                     Some(_) => {}
-                    None => {}
+                    None => warn!(
+                        "SHOCKWAVES: ChangeBits BitPart Slice for {source:?} may receive insufficient bits; if this happens, the entire slice will be undefined"
+                    ),
                 }
-                Some((*to - *from) as u32)
+                Ok(Some((*to - *from) as u32))
+            }
+            BitPart::HasUndefined(sub) => {
+                if sub.verify(inputsize, source)?.is_none() {
+                    warn!(
+                        "SHOCKWAVES: ChangeBits BitPart HasUndefined for {source:?} may receive a variable number of bits"
+                    )
+                }
+                Ok(Some(1))
+            }
+            BitPart::Reverse(sub) | BitPart::Invert(sub) => sub.verify(inputsize, source),
+            BitPart::And(subs) | BitPart::Or(subs) | BitPart::Xor(subs) => {
+                let len = subs
+                    .iter_mut()
+                    .map(|s| s.verify(inputsize, source))
+                    .collect::<Result<Option<Vec<_>>, &str>>()?
+                    .map(|l| l.iter().max().copied());
+                match len {
+                    None => Ok(None),
+                    Some(Some(x)) => Ok(Some(x)),
+                    Some(None) => Err("BitPart And/Or/Xor must have at least one sub-bitpart"),
+                }
+            }
+            BitPart::OneHot((from, to), sub) | BitPart::NHot((from, to), sub) => {
+                if to < from {
+                    return Err("(N)Hot range of negative length");
+                }
+                if let Some(w) = sub.verify(inputsize, source)? {
+                    if w > 128 {
+                        return Err("(N)Hot encoding is provided more than 128 bits");
+                    }
+                } else {
+                    warn!(
+                        "SHOCKWAVES: ChangeBits BitPart (N)Hot for {source:?} may receive more than 128 bits; if the value overflows the size of a 128 bit unsigned, the result will be completely undefined"
+                    );
+                }
+                Ok(Some((*to - *from) as u32))
+            }
+            BitPart::If { t, f, x, c } => {
+                if let Some(w) = c.verify(inputsize, source)? {
+                    if w == 0 {
+                        warn!(
+                            "SHOCKWAVES: BitPart If condition input for {source:?} has no bits and is always treated as undefined"
+                        );
+                    }
+                }
+                if let (Some(t), Some(f), Some(x)) = (
+                    t.verify(inputsize, source)?,
+                    f.verify(inputsize, source)?,
+                    x.verify(inputsize, source)?,
+                ) {
+                    if t == f && f == x {
+                        return Ok(Some(t));
+                    }
+                }
+                Ok(None)
             }
         }
     }

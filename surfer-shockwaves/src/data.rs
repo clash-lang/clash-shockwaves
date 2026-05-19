@@ -210,9 +210,9 @@ pub enum BitPart {
     #[serde(alias = "^")]
     Xor(Vec<BitPart>),
     #[serde(alias = "h")]
-    OneHot((usize, usize), Box<BitPart>),
+    OneHot((u128, u128), Box<BitPart>),
     #[serde(alias = "H")]
-    NHot((usize, usize), Box<BitPart>),
+    NHot((u128, u128), Box<BitPart>),
     #[serde(alias = "?")]
     If {
         t: Box<BitPart>,

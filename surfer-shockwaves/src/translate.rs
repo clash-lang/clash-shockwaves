@@ -313,10 +313,10 @@ impl BitPart {
                 })
             }
             BitPart::OneHot((f, t), bp) | BitPart::NHot((f, t), bp) => {
-                let k = match usize::from_str_radix(bp.from(bits).as_ref(), 2) {
+                let k = match u128::from_str_radix(bp.from(bits).as_ref(), 2) {
                     Ok(k) => k,
                     Err(_) => {
-                        return StringLike::Full("x".repeat(t - f));
+                        return StringLike::Full("x".repeat((t - f) as usize));
                     }
                 };
 
