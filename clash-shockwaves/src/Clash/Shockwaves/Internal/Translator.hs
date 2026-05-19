@@ -20,7 +20,8 @@ import Data.Bifunctor (first)
 import qualified Data.List as L
 import Data.List.Extra (chunksOf)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Maybe (fromMaybe, isJust, listToMaybe, isNothing)
+import Data.String (IsString (fromString))
 import Data.Tuple.Extra (second)
 import Math.NumberTheory.Logarithms (intLog2)
 import Numeric (showHex)
@@ -74,10 +75,27 @@ filterSignals = L.filter ((/= "") . fst)
 {- FOURMOLU_DISABLE -}
 -- | Change bits using 'BitPart'.
 changeBits :: BitPart -> BitList -> BitList
-changeBits (BPConcat bps) bin = L.foldl (<>) "" $ L.map (`changeBits` bin) bps
-changeBits (BPLit bl)    _bin = bl
-changeBits (BPSlice s bp) bin = BL.slice s $ changeBits bp bin
-changeBits BPIn           bin = bin
+changeBits BPIn                bin = bin
+changeBits (BPLit bl)          _   = bl
+changeBits (BPSlice s bp)      bin = BL.slice s $ changeBits bp bin
+changeBits (BPConcat bps)      bin = L.foldl (<>) "" $ L.map (`changeBits` bin) bps
+changeBits (BPHasUndefined bp) bin = (["0","1"] L.!!) $ fromEnum $ BL.hasUndefined $ changeBits bp bin
+changeBits (BPReverse bp)      bin = fromString $ L.reverse $ show $ changeBits bp bin
+changeBits (BPInvert bp)       bin = complement $ changeBits bp bin
+changeBits (BPAnd bps)         bin = L.foldl1 (.&.) $ L.map (`changeBits` bin) bps
+changeBits (BPOr bps)          bin = L.foldl1 (.|.) $ L.map (`changeBits` bin) bps
+changeBits (BPXor bps)         bin = L.foldl1 xor $ L.map (`changeBits` bin) bps
+changeBits (BPOneHot (f,t) bp) bin = case BL.toInteger $ changeBits bp bin of
+  Just x  -> fromString $ L.map (("01" L.!!) . fromEnum . (== fromIntegral x)) [f..t-1]
+  Nothing -> fromString $ L.replicate (t-f) 'x'
+changeBits (BPNHot (f,t) bp)   bin = case BL.toInteger $ changeBits bp bin of
+  Just x  -> fromString $ L.map (("01" L.!!) . fromEnum . (<= fromIntegral x)) [f..t-1]
+  Nothing -> fromString $ L.replicate (t-f) 'x'
+changeBits (BPIf t f x c)      bin = let c' = show $ changeBits c bin
+                                     in case listToMaybe c' of
+                                          Just '1' -> changeBits t bin
+                                          Just '0' -> changeBits f bin
+                                          _        -> changeBits x bin
 {- FOURMOLU_ENABLE -}
 
 {- FOURMOLU_DISABLE -}

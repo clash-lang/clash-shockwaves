@@ -47,6 +47,9 @@ module Clash.Shockwaves.Waveform (
   BitPart (..),
 
   -- ** Creating Translators
+  defaultTranslator,
+  noConstructorSubsignals,
+  renameFields,
   tRef,
   tDup,
   tStyled,

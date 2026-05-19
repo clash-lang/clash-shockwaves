@@ -16,15 +16,19 @@ module Clash.Shockwaves.BitList (
   split,
   concat,
   slice,
+  length,
 
   -- * Using BitList with BitVector
   bvToBl,
   blToBv,
-  binPack,
-  binUnpack,
+  pack,
+  unpack,
 
   -- * Using BitList as a number
   toInteger,
+
+  -- * Rest
+  hasUndefined,
 ) where
 
 import Clash.Shockwaves.Internal.BitList
