@@ -329,21 +329,21 @@ impl BitPart {
                 Ok(Some((*to - *from) as u32))
             }
             BitPart::If { t, f, x, c } => {
-                if let Some(w) = c.verify(inputsize, source)? {
-                    if w == 0 {
-                        warn!(
-                            "SHOCKWAVES: BitPart If condition input for {source:?} has no bits and is always treated as undefined"
-                        );
-                    }
+                if let Some(w) = c.verify(inputsize, source)?
+                    && w == 0
+                {
+                    warn!(
+                        "SHOCKWAVES: BitPart If condition input for {source:?} has no bits and is always treated as undefined"
+                    );
                 }
                 if let (Some(t), Some(f), Some(x)) = (
                     t.verify(inputsize, source)?,
                     f.verify(inputsize, source)?,
                     x.verify(inputsize, source)?,
-                ) {
-                    if t == f && f == x {
-                        return Ok(Some(t));
-                    }
+                ) && t == f
+                    && f == x
+                {
+                    return Ok(Some(t));
                 }
                 Ok(None)
             }
