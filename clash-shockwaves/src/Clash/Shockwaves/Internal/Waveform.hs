@@ -28,6 +28,7 @@ import Clash.Shockwaves.Internal.Util
 
 import Data.Char (isAlpha)
 import qualified Data.List as L
+import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Proxy
 import Data.Typeable
@@ -42,6 +43,7 @@ import Clash.Num.Overflowing (Overflowing)
 import Clash.Num.Saturating (Saturating)
 import Clash.Num.Wrapping (Wrapping)
 import Clash.Num.Zeroing (Zeroing)
+import Data.Bifunctor (first)
 import Data.Complex (Complex)
 import Data.Functor.Identity (Identity)
 import Data.Ord (Down)
@@ -123,15 +125,37 @@ tRef (_ :: Proxy a) =
 tConst :: Render -> Translator
 tConst r = Translator 0 $ TConst $ Translation r []
 
+{- | Create a LUT translator for a type, using either the static LUT or the translation
+function specified in 'WaveformLUT'
+-}
+tLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> Maybe LUT -> Translator
+tLut p l = case l of
+  Just lut -> tStaticLut p lut
+  Nothing -> tGeneratedLut p
+
 -- | Create a LUT translator for a type, using the translation function of 'WaveformLUT'.
-tLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> Translator
-tLut _ =
+tGeneratedLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> Translator
+tGeneratedLut _ =
   Translator (width @a)
     $ TLut
       (typeName @a)
+      Nothing
       TypeRef
         { translateBinRef = translateL @a . BL.unpack
         , structureRef = structureL @a
+        , translatorRef = translator @a
+        }
+
+-- | Create a LUT translator for a type, using the static LUT in 'WaveformLUT'.
+tStaticLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> LUT -> Translator
+tStaticLut _ lut =
+  Translator (width @a)
+    $ TLut
+      (typeName @a)
+      (Just lut)
+      TypeRef
+        { translateBinRef = translateStaticL @a . BL.unpack
+        , structureRef = L.foldl1 (<>) $ L.map fromTranslation $ M.elems lut
         , translatorRef = translator @a
         }
 
@@ -205,9 +229,9 @@ addTypes = addTypesT $ tRef (Proxy @a)
 styles' :: forall a. (Waveform a) => [WaveStyle]
 styles' = styles @a <> L.repeat WSDefault
 
--- | Check if the type requires LUTs for translation.
-hasLut :: forall a. (Waveform a) => Bool
-hasLut = hasLutT $ translator @a
+-- | Check if the type requires values to be added to LUTs.
+hasGeneratedLut :: forall a. (Waveform a) => Bool
+hasGeneratedLut = hasGeneratedLutT $ translator @a
 
 -- | Return the structure of a type.
 structure :: forall a. (Waveform a) => Structure
@@ -542,6 +566,29 @@ class (Typeable a, BitPack a) => WaveformLUT a where
     (Generic a, Show a, WaveformG (Rep a ()), PrecG (Rep a ())) => a -> Translation
   translateL = translateWith renderShow splitL
 
+  {- | A static lookup table.
+  To use a static lookup table rather than one created from the values found during simulation,
+  set this to a list of values and their translations. Set 'translateL' and 'structureL' to 'undefined'.
+  -}
+  staticL :: Maybe [(a, Translation)]
+  staticL = Nothing
+
+-- | Return the static LUT of a type with 'WaveformLUT'
+staticLutL :: forall a. (WaveformLUT a) => Maybe LUT
+staticLutL = staticLut <$> staticL @a
+
+-- | Turn a list of (value,translation) pairs into a LUT
+staticLut :: (BitPack a) => [(a, Translation)] -> LUT
+staticLut = M.fromList . L.map (first BL.pack)
+
+-- | Translate a value from a type with a static LUT
+translateStaticL :: forall a. (Waveform a, WaveformLUT a) => a -> Translation
+translateStaticL x = case staticLutL @a of
+  Just lut -> case M.lookup (BL.pack x) lut of
+    Just t -> t
+    Nothing -> errorT "{value missing from LUT}"
+  Nothing -> error "cannot translate type; it has no static LUT" -- TODO rewrite using maybe function instead of case
+
 -- | Make sure a t'Translation' is fully defined. If not, return a t'Translation' with @"undefined"@.
 safeTranslation :: Translation -> Translation
 safeTranslation = safeValOr (errorT "undefined")
@@ -628,7 +675,7 @@ instance
   where
   typeName = typeNameP (Proxy @a)
 
-  translator = tLut (Proxy @a)
+  translator = tLut (Proxy @a) (staticLutL @a)
 
 ----------------------------------------------- PREC ----------------------------------
 
@@ -834,8 +881,14 @@ instance (BitPack Char) => WaveformLUT Char where
 deriving via WaveformForLUT Char instance (BitPack Char) => Waveform Char
 
 instance WaveformLUT Bit where
-  structureL = Structure []
-  translateL = translateAtomShow
+  staticL =
+    Just
+      [ (high, Translation (Just ("1", "$bit_high", 11)) [])
+      , (low, Translation (Just ("0", "$bit_low", 11)) [])
+      , (undefined, Translation (Just ("x", WSWarn, 11)) [])
+      ]
+  structureL = undefined -- Structure []
+  translateL = undefined -- translateAtomShow
 deriving via WaveformForLUT Bit instance Waveform Bit
 
 instance WaveformLUT Double where

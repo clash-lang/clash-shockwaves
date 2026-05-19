@@ -208,6 +208,8 @@ renderTest = testGroup "RENDERED STRING IS CORRECT"
                                 ["True :> False :> Nil","undefined :> undefined :> Nil", VECSPINE     ,"undefined :> undefined :> Nil"]
   , testGroup "Vec 0" $ renders [ Nil @Bool, undef]
                                 ["Nil"     ,"Nil" ]
+  , testGroup "Bit" $ renders [low, undef]
+                              ["0",   "x" ]
   , testGroup "Maybe L" $ renders [ Just (La False False)  ,  Just undef     , undef     ]
                                   ["Just (False <A> False)", "Just undefined","undefined"]
   , testGroup "Signed 32" $ renders [ 0 ,  12345 ,   -123456789 :: Signed 32]

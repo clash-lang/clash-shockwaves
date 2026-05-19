@@ -40,6 +40,7 @@ tests =
   , test "Maybe" $ values [Nothing, Just True, undef]
   , test "Vec2"  $ values [True :> False :> Nil, undef :> undef :> Nil, undef]
   , test "Vec0"  $ values [Nil @Bool, undef]
+  , test "Bit"   $ values [high, undefined]
   , test "Signed32" $ values [0::Signed 32,12345,1234567,-123456,-1234567]
   , test "Pointer16" $ values $ Pointer @16 <$> [0,1,2,3,undef]
   , test "NumRepU3" $ values $ NumRep <$> [0,1,3,4,7,undef :: Unsigned 3]

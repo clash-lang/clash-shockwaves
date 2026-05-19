@@ -9,7 +9,7 @@ Everything needed to create 'Clash.Shockwaves.Waveform' instances that use looku
 -}
 module Clash.Shockwaves.LUT (
   -- * WaveformLUT
-  WaveformLUT (structureL, translateL),
+  WaveformLUT (structureL, translateL, staticL),
   translateWith,
   renderWith,
   renderShow,
@@ -22,6 +22,8 @@ module Clash.Shockwaves.LUT (
   precL,
   WaveformForLUT (..),
   tLut,
+  tGeneratedLut,
+  tStaticLut,
 
   -- * Utility
   tFromVal,
