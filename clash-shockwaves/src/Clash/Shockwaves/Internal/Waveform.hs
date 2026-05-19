@@ -154,7 +154,7 @@ tStaticLut _ lut =
       (typeName @a)
       (Just lut)
       TypeRef
-        { translateBinRef = translateStaticL @a . BL.binUnpack
+        { translateBinRef = translateStaticL @a . BL.unpack
         , structureRef = L.foldl1 (<>) $ L.map fromTranslation $ M.elems lut
         , translatorRef = translator @a
         }
@@ -579,12 +579,12 @@ staticLutL = staticLut <$> staticL @a
 
 -- | Turn a list of (value,translation) pairs into a LUT
 staticLut :: (BitPack a) => [(a, Translation)] -> LUT
-staticLut = M.fromList . L.map (first BL.binPack)
+staticLut = M.fromList . L.map (first BL.pack)
 
 -- | Translate a value from a type with a static LUT
 translateStaticL :: forall a. (Waveform a, WaveformLUT a) => a -> Translation
 translateStaticL x = case staticLutL @a of
-  Just lut -> case M.lookup (BL.binPack x) lut of
+  Just lut -> case M.lookup (BL.pack x) lut of
     Just t -> t
     Nothing -> errorT "{value missing from LUT}"
   Nothing -> error "cannot translate type; it has no static LUT" -- TODO rewrite using maybe function instead of case
