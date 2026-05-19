@@ -87,7 +87,7 @@ instance (Waveform a) => Waveform (NumRep a) where
         { sliceTrans =
             L.map
               ((0, width @a),)
-              ( tRef (Proxy @a)
+              ( tRef @a
                   : L.map
                     (Translator (width @a))
                     [ TNumber NFBin (Just (4, "_")) "0b" False
@@ -97,7 +97,7 @@ instance (Waveform a) => Waveform (NumRep a) where
                     , TNumber NFSig (Just (3, "_")) "" False
                     ]
               )
-              <> [((width @a - 1, width @a), tRef $ Proxy @Bool)]
+              <> [((width @a - 1, width @a), tRef @Bool)]
         , hierarchy =
             [("bin", 1), ("oct", 2), ("hex", 3), ("unsigned", 4), ("signed", 5), ("odd", 6)]
         , valueParts = [VPLit "{", VPRef 0 (-1), VPLit ", odd=", VPRef 6 (-1), VPLit "}"]
@@ -131,7 +131,7 @@ instance Waveform SumStruct where
               , preci = 10
               , preco = 10
               , labels = []
-              , subs = [("sub", tRef (Proxy @(Maybe Bool)))]
+              , subs = [("sub", tRef @(Maybe Bool))]
               }
         , tDup "B" $ tConst $ Just ("SSB", WSDefault, 11)
         , Translator 2
@@ -142,7 +142,7 @@ instance Waveform SumStruct where
               , preci = 10
               , preco = 10
               , labels = []
-              , subs = [("sub", tRef (Proxy @(Either Bool Bool)))]
+              , subs = [("sub", tRef @(Either Bool Bool))]
               }
         , tDup "D" $ tConst $ Just ("SSD", WSDefault, 11)
         ]

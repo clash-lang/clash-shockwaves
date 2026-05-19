@@ -49,6 +49,7 @@ module Clash.Shockwaves.Waveform (
   -- ** Creating Translators
   defaultTranslator,
   noConstructorSubsignals,
+  defaultTypeName,
   renameFields,
   tRef,
   tDup,
@@ -61,6 +62,7 @@ module Clash.Shockwaves.Waveform (
   WaveformForNumber (..),
 ) where
 
+import Clash.Shockwaves.Internal.Util
 import Clash.Shockwaves.Internal.Translator
 import Clash.Shockwaves.Internal.Types
 

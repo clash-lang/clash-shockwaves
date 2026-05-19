@@ -51,8 +51,8 @@ writeFileJSON :: forall a. (ToJSON a) => FilePath -> a -> IO ()
 writeFileJSON = encodeFile
 
 -- | Returns the 'BitSize' of a type as a runtime 'Int'.
-bitsize :: (BitPack a) => Proxy a -> Int
-bitsize (_ :: Proxy a) = fromInteger $ natVal $ Proxy @(BitSize a)
+bitsize :: forall a. (BitPack a) => Int
+bitsize = fromInteger $ natVal $ Proxy @(BitSize a)
 
 -- | Wrap parentheses around a value.
 parenthesize :: Value -> Value
@@ -70,15 +70,15 @@ joinWith s (x : y : r) = x <> s <> joinWith s (y : r)
 joinWith _ [x] = x
 joinWith _ [] = ""
 
-{- | Obtain the name of a type from a proxy value.
+{- | Obtain the default name of a type.
 The name consists of a unique fingerprint (which is safe to use)
 and a human readable representation of the type (which may not be unique
 if multiple sources define the same types).
 -}
-typeNameP :: (Typeable a) => Proxy a -> TypeName
-typeNameP p = show (typeRepFingerprint r) <> ":" <> show r
+defaultTypeName :: forall a. (Typeable a) => TypeName
+defaultTypeName = show (typeRepFingerprint r) <> ":" <> show r
  where
-  r = typeRep p
+  r = typeRep (Proxy @a)
 
 -- | Shorthand function for obtaining the runtime 'String' of a type level Symbol.
 sym :: forall s. (KnownSymbol s) => String

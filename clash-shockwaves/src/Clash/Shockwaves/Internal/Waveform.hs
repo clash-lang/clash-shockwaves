@@ -110,8 +110,8 @@ tDup :: SubSignal -> Translator -> Translator
 tDup name (Translator w t) = Translator w $ TDuplicate name (Translator w t)
 
 -- | Generate a translator reference for a type.
-tRef :: (Waveform a) => Proxy a -> Translator
-tRef (_ :: Proxy a) =
+tRef :: forall a. (Waveform a) => Translator
+tRef =
   Translator (width @a)
     $ TRef
       (typeName @a)
@@ -128,14 +128,14 @@ tConst r = Translator 0 $ TConst $ Translation r []
 {- | Create a LUT translator for a type, using either the static LUT or the translation
 function specified in 'WaveformLUT'
 -}
-tLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> Maybe LUT -> Translator
-tLut p l = case l of
-  Just lut -> tStaticLut p lut
-  Nothing -> tGeneratedLut p
+tLut :: forall a. (Waveform a, WaveformLUT a) => Maybe LUT -> Translator
+tLut l = case l of
+  Just lut -> tStaticLut @a lut
+  Nothing -> tGeneratedLut @a
 
 -- | Create a LUT translator for a type, using the translation function of 'WaveformLUT'.
-tGeneratedLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> Translator
-tGeneratedLut _ =
+tGeneratedLut :: forall a. (Waveform a, WaveformLUT a) => Translator
+tGeneratedLut =
   Translator (width @a)
     $ TLut
       (typeName @a)
@@ -147,8 +147,8 @@ tGeneratedLut _ =
         }
 
 -- | Create a LUT translator for a type, using the static LUT in 'WaveformLUT'.
-tStaticLut :: forall a. (Waveform a, WaveformLUT a) => Proxy a -> LUT -> Translator
-tStaticLut _ lut =
+tStaticLut :: forall a. (Waveform a, WaveformLUT a) => LUT -> Translator
+tStaticLut lut =
   Translator (width @a)
     $ TLut
       (typeName @a)
@@ -179,7 +179,7 @@ class (Typeable a, BitPack a) => Waveform a where
   Overriding this value is only really useful for derive via strategies.
   -}
   typeName :: TypeName
-  typeName = typeNameP (Proxy @a)
+  typeName = defaultTypeName @a
 
   -- | The translator used for the data type. Must match the structure value.
   translator :: Translator
@@ -198,7 +198,7 @@ class (Typeable a, BitPack a) => Waveform a where
 
   -- | Runtime bitsize of the type.
   width :: Int
-  width = bitsize (Proxy @a)
+  width = bitsize @a
 
 {- | Return the default translator that is derived for a data type.
 This default can be modified to obtain a slightly different translator.
@@ -223,7 +223,7 @@ translateBin = translateBinT (translator @a)
 
 -- | Register this type and all its subtypes.
 addTypes :: forall a. (Waveform a) => TypeMap -> TypeMap
-addTypes = addTypesT $ tRef (Proxy @a)
+addTypes = addTypesT $ tRef @a
 
 -- | Helper function that fills the 'styles' list with 'WSDefault'.
 styles' :: forall a. (Waveform a) => [WaveStyle]
@@ -525,7 +525,7 @@ instance
   where
   translatorG = undefined
   constrTranslatorsG = undefined
-  fieldTranslatorsG = [(sym @name, tRef (Proxy @t))]
+  fieldTranslatorsG = [(sym @name, tRef @t)]
 
   widthG = width @t
 
@@ -536,7 +536,7 @@ instance
 instance (Waveform t) => WaveformG (S1 (MetaSel Nothing p q r) (Rec0 t) k) where
   translatorG = undefined
   constrTranslatorsG = undefined
-  fieldTranslatorsG = [("", tRef (Proxy @t))]
+  fieldTranslatorsG = [("", tRef @t)]
 
   widthG = width @t
 
@@ -673,9 +673,9 @@ instance
   (Waveform a, WaveformLUT a, BitPack a, Typeable a) =>
   Waveform (WaveformForLUT a)
   where
-  typeName = typeNameP (Proxy @a)
+  typeName = defaultTypeName @a
 
-  translator = tLut (Proxy @a) (staticLutL @a)
+  translator = tLut @a (staticLutL @a)
 
 ----------------------------------------------- PREC ----------------------------------
 
@@ -769,8 +769,8 @@ instance
   (WaveformConst a, BitPack a, Typeable a) =>
   Waveform (WaveformForConst a)
   where
-  typeName = typeNameP (Proxy @a)
-  translator = Translator (bitsize $ Proxy @a) $ TConst $ constTrans @a
+  typeName = defaultTypeName @a
+  translator = Translator (bitsize @a) $ TConst $ constTrans @a
 
 -- NUMBERS
 
@@ -799,7 +799,7 @@ instance
   ) =>
   Waveform (WaveformForNumber (f :: NumberFormat) (s :: Maybe NSPair) a)
   where
-  typeName = typeNameP (Proxy @a)
+  typeName = defaultTypeName @a
   translator =
     Translator (width @(WaveformForNumber f s a))
       $ TNumber
@@ -936,19 +936,19 @@ instance (Waveform a) => Waveform (Identity a)
 
 -- number wrappers
 instance (Waveform a) => Waveform (Zeroing a) where
-  translator = tDup "zeroing" $ tRef (Proxy @a)
+  translator = tDup "zeroing" $ tRef @a
 
 instance (Waveform a) => Waveform (Wrapping a) where
-  translator = tDup "wrapping" $ tRef (Proxy @a)
+  translator = tDup "wrapping" $ tRef @a
 
 instance (Waveform a) => Waveform (Saturating a) where
-  translator = tDup "saturating" $ tRef (Proxy @a)
+  translator = tDup "saturating" $ tRef @a
 
 instance (Waveform a) => Waveform (Overflowing a) where
-  translator = tDup "overflowing" $ tRef (Proxy @a)
+  translator = tDup "overflowing" $ tRef @a
 
 instance (Waveform a) => Waveform (Erroring a) where
-  translator = tDup "erroring" $ tRef (Proxy @a)
+  translator = tDup "erroring" $ tRef @a
 
 -- vectors
 instance (KnownNat n, Waveform a) => Waveform (Vec n a) where
@@ -963,7 +963,7 @@ instance (KnownNat n, Waveform a) => Waveform (Vec n a) where
             , preci = 5
             , preco = 5
             , len = fromIntegral $ natVal (Proxy @n)
-            , sub = tRef (Proxy @a)
+            , sub = tRef @a
             }
         else
           TConst $ tFromVal "Nil"
@@ -1012,14 +1012,14 @@ class WaveformRTree (isLeaf :: Bool) d a where
   translatorRTree :: Translator
 
 instance (Waveform a) => WaveformRTree True 0 a where
-  translatorRTree = tRef (Proxy @a)
+  translatorRTree = tRef @a
 
 instance
   (Waveform (RTree d1 a), Waveform a, d ~ d1 + 1, KnownNat d, KnownNat d1) =>
   WaveformRTree False d a
   where
   translatorRTree =
-    Translator (bitsize $ Proxy @(RTree d a))
+    Translator (bitsize @(RTree d a))
       $ TProduct
         { start = "<"
         , sep = ","
@@ -1030,14 +1030,14 @@ instance
         , subs = [("left", tsub), ("right", tsub)]
         }
    where
-    tsub = tRef (Proxy @(RTree d1 a))
+    tsub = tRef @(RTree d1 a)
 
 {- | A translator for displaying values with zero or more fields like tuples.
 This function will error if called for a type that has more than one constructor!
 -}
 tupleTranslator :: forall t. (BitPack t, WaveformG (Rep t ())) => Translator
 tupleTranslator =
-  Translator (bitsize (Proxy @t))
+  Translator (bitsize @t)
     $ TProduct
       { start = "("
       , sep = ","

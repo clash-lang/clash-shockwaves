@@ -28,7 +28,7 @@ instance (KnownNat n, Waveform a) => Waveform (Vec n a) where
       , preci = 5
       , preco = 5
       , len = fromIntegral $ natVal (Proxy @n)
-      , sub = tRef (Proxy @a)
+      , sub = tRef @a
       }
     else
       TConst $ Translation (Just ("Nil",WSNormal,11)) []
@@ -65,7 +65,7 @@ and make them invisible (i.e. a leaf is rendered as it's containing data).
 
 ```hs
 instance (Waveform a) => WaveformRTree True 0 a where
-  translatorRTree = tRef (Proxy @a)
+  translatorRTree = tRef @a
 ```
 
 The branch translator is slightly more complex. Since `RTree` is usually rendered like
@@ -76,7 +76,7 @@ something that is impossible for the leaf nodes.
 ```hs
 instance (Waveform (RTree d1 a), Waveform a, d ~ d1 + 1, KnownNat d, KnownNat d1)
   => WaveformRTree False d a where
-  translatorRTree = Translator (bitsize $ Proxy @(RTree d a)) $ TProduct
+  translatorRTree = Translator (bitsize @(RTree d a)) $ TProduct
       { start = "<"
       , sep = ","
       , stop = ">"
@@ -85,7 +85,7 @@ instance (Waveform (RTree d1 a), Waveform a, d ~ d1 + 1, KnownNat d, KnownNat d1
       , preco = 11
       , subs = [("left",tsub),("right",tsub)]
       }
-    where tsub = tRef (Proxy @(RTree d1 a))
+    where tsub = tRef @(RTree d1 a)
 ```
 
 > Note: it would be a bit more efficient to use `TArray` here; however, we would not be able to

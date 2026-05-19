@@ -13,7 +13,7 @@ First, let's go through the functions and see what we need to do:
   instance meant to be used as a `derive via`. In that case, use:
   ```hs
   instance Waveform (WaveformForX a) where
-    typeName = typeNameP (Proxy @a)
+    typeName = defaultTypeName @a
   ```
 - `styles` is for adding constructor styles, and will likely go
   unused in a fully custom instance. For a guide on
@@ -137,7 +137,7 @@ If you have a subvalue that needs to be translated, do not include its full tran
 but include a reference to the type using `TRef`. Instead of manually creating this value,
 use the `tRef` function to create the full translator:
 ```hs
-translator = tRef (Proxy @MyType)
+translator = tRef @MyType
 ```
 
 #### Numbers
@@ -181,7 +181,7 @@ like this:
 translator = Translator (width @(Maybe a)) $ TSum
   [ tDup "Nothing" $ Translator 0 $ TConst $ Translation (Just ("Nothing",_,11)) []
   , tDup "Just" $ _ $ TProduct
-      { subs = [(Just "0", tRef (Proxy @a))] 
+      { subs = [(Just "0", tRef @a)] 
       , start = "Just ", sep = "", stop = "", labels = []
       , preci = 10, preco = 10
       , style = 0 }]
@@ -201,7 +201,7 @@ But instead, to reduce unnecessary subsignal clutter, it looks like this:
 translator = Translator _ $ TSum
   [ Translator 0 $ TConst $ Translation (Just ("Nothing","$maybe_nothing",11)) []
   , Translator (width @a) $ TProduct
-      { subs = [(Just "Just.0", tRef (Proxy @a))] 
+      { subs = [(Just "Just.0", tRef @a)] 
       , start = "Just ", sep = "", stop = "", labels = []
       , preci = 10, preco = 10
       , style = 0 }]
