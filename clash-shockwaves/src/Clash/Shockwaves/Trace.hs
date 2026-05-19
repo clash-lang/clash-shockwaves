@@ -481,7 +481,7 @@ dumpVCD## (offset, cycles) Maps{signalMap,typeMap,traceMap} now
   slice :: [a] -> [a]
   slice values = drop offset $ take cycles values
 
-  staticLuts = Map.fromList $ concatMap getStaticLuts (M.elems typeMap)  -- map over the types, collect all LUTs in a map 
+  staticLuts = Map.fromList $ concatMap getStaticLuts (M.elems typeMap) -- map over the types, collect all LUTs in a map
   lutMap = foldl (flip ($)) staticLuts $ concat $ addValuess'
 
   headerDate       = ["$date", Text.pack $ iso8601Format now, "$end"]
