@@ -36,18 +36,18 @@ implementation like this:
 
 ```hs
 instance Waveform a => Waveform (NumRep a) where
-  translator = Translator (width @a) $ TAdvancedProduct
+  translator = Translator (bitSize @a) $ TAdvancedProduct
     { sliceTrans =
-      L.map ((0,width @a),)
-        ( tRef (Proxy @a) :                           -- translate as `a`
-          L.map (Translator (width @a))               -- translate as numbers
+      L.map ((0,bitSize @a),)
+        ( tRef @a :                                   -- translate as `a`
+          L.map (Translator (bitSize @a))             -- translate as numbers
             [ TNumber NFBin (Just (4,"_")) "0b" False
             , TNumber NFOct (Just (4,"_")) "0o" False
             , TNumber NFHex (Just (2,"_")) "0X" False
             , TNumber NFUns (Just (3,"_")) "" False
             , TNumber NFSig (Just (3,"_")) "" False
             ])
-      <> [((width @a-1,width @a),tRef $ Proxy @Bool)] -- translate parity bit
+      <> [((bitSize @a-1, bitSize @a),tRef @Bool)] -- translate parity bit
     , hierarchy = [("bin",1),("oct",2),("hex",3),("unsigned",4),("signed",5),("odd",6)]
     , valueParts = [VPLit "{",VPRef 0 (-1),VPLit ", odd=",VPRef 6 (-1), VPLit "}"]
     , preco = 11
@@ -99,10 +99,10 @@ We can write a `Waveform` instance like this:
 
 ```hs
 instance KnownNat a => Waveform (Pointer a) where
-  translator = Translator (width @(Pointer a))
+  translator = Translator (bitSize @(Pointer a))
     $ TAdvancedSum
-      { index = (0,width @(Pointer a))
-      , defTrans = Translator (width @(Pointer a)) $ TNumber NFHex (Just (2,"_")) False
+      { index = (0, bitSize @(Pointer a))
+      , defTrans = Translator (bitSize @(Pointer a)) $ TNumber NFHex (Just (2,"_")) False
       , rangeTrans = [((0,1), tConst $ Just ("NULL",WSWarn,11))]
       }
 ```

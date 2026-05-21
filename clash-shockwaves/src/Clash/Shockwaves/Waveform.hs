@@ -11,7 +11,7 @@ Everything needed to create custom implementations of 'Waveform'.
 -}
 module Clash.Shockwaves.Waveform (
   -- * The Waveform class
-  Waveform (translator, styles, width),
+  Waveform (translator, styles),
   translate,
   translateBin,
   hasGeneratedLut,
@@ -48,7 +48,9 @@ module Clash.Shockwaves.Waveform (
 
   -- ** Creating Translators
   defaultTranslator,
+  bitSize,
   noConstructorSubsignals,
+  defaultTypeName,
   renameFields,
   tRef,
   tDup,
@@ -63,5 +65,6 @@ module Clash.Shockwaves.Waveform (
 
 import Clash.Shockwaves.Internal.Translator
 import Clash.Shockwaves.Internal.Types
+import Clash.Shockwaves.Internal.Util
 
 import Clash.Shockwaves.Internal.Waveform
