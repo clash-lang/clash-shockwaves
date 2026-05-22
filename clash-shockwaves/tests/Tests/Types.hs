@@ -55,7 +55,7 @@ data L
   = La Bool Bool
   | Lb Bool Bool
   deriving (ShowX, BitPack, NFDataX, Generic, Typeable)
-  deriving (Waveform) via (WaveformForLUT L)
+  deriving (Waveform) via (WaveformForLut L)
 
 instance WaveformLUT L where
   translateL = translateWith (renderWith labelL styleL precL) splitL

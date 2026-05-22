@@ -20,7 +20,7 @@ module Clash.Shockwaves.LUT (
   noSplit,
   splitL,
   precL,
-  WaveformForLUT (..),
+  WaveformForLut (..),
   tLut,
   tGeneratedLut,
   tStaticLut,

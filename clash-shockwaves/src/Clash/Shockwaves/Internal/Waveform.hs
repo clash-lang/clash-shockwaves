@@ -551,7 +551,7 @@ instance (Waveform t) => WaveformG (S1 (MetaSel Nothing p q r) (Rec0 t) k) where
 
 {- |
 Class for easily defining custom translations for a type by using LUTs.
-To use this class, a type must derive 'Waveform' via 'WaveformForLUT'.
+To use this class, a type must derive 'Waveform' via 'WaveformForLut'.
 
 Bye default, the implementation uses 'GHC.Generics.Generic' for defining subsignals
 and operator precedence, and 'Show' for displaying the value.
@@ -665,17 +665,17 @@ precL x = precG (from @_ @() x)
 
 @
 type T = ... deriving (...)
-deriving via WaveformForLUT T instance Waveform T
+deriving via WaveformForLut T instance Waveform T
 
 isntance WaveformLUT T where
   ...
 @
 -}
-newtype WaveformForLUT a = WfLUT a deriving (Generic, BitPack, Typeable)
+newtype WaveformForLut a = WaveformForLut a deriving (Generic, BitPack, Typeable)
 
 instance
   (Waveform a, WaveformLUT a, BitPack a, Typeable a) =>
-  Waveform (WaveformForLUT a)
+  Waveform (WaveformForLut a)
   where
   typeName = defaultTypeName @a
 
@@ -787,7 +787,7 @@ deriving via WaveformForNumber NFSig ('Just '(3,"_")) instance Waveform (Signed 
 @
 -}
 newtype WaveformForNumber (f :: NumberFormat) (s :: Maybe NSPair) a
-  = WfNum a
+  = WaveformForNumber a
   deriving (Generic, BitPack, Typeable)
 
 -- | Pair of a 'Nat' and 'Symbol', used for type-level spacer values.
@@ -882,7 +882,7 @@ instance (Waveform a, Waveform b) => Waveform (Either a b) where
 instance (BitPack Char) => WaveformLUT Char where
   structureL = Structure []
   translateL = translateAtomShow
-deriving via WaveformForLUT Char instance (BitPack Char) => Waveform Char
+deriving via WaveformForLut Char instance (BitPack Char) => Waveform Char
 
 instance WaveformLUT Bit where
   staticL =
@@ -893,17 +893,17 @@ instance WaveformLUT Bit where
       ]
   structureL = undefined -- Structure []
   translateL = undefined -- translateAtomShow
-deriving via WaveformForLUT Bit instance Waveform Bit
+deriving via WaveformForLut Bit instance Waveform Bit
 
 instance WaveformLUT Double where
   structureL = Structure []
   translateL = translateAtomSigShow
-deriving via WaveformForLUT Double instance Waveform Double
+deriving via WaveformForLut Double instance Waveform Double
 
 instance WaveformLUT Float where
   structureL = Structure []
   translateL = translateAtomSigShow
-deriving via WaveformForLUT Float instance Waveform Float
+deriving via WaveformForLut Float instance Waveform Float
 
 deriving via WaveformForNumber NFSig DecSpacer Int instance Waveform Int
 deriving via WaveformForNumber NFSig DecSpacer Int8 instance Waveform Int8
@@ -985,7 +985,7 @@ instance
   structureL = Structure []
   translateL = translateAtomSigShow
 deriving via
-  WaveformForLUT (Fixed r i f)
+  WaveformForLut (Fixed r i f)
   instance
     (BitPack (Fixed r i f), KnownNat i, KnownNat f, Show (Fixed r i f), Typeable r) =>
     Waveform (Fixed r i f)

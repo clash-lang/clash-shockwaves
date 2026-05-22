@@ -15,7 +15,7 @@ Y:  Derive `Waveform` / create `Waveform` instance (see [this](WAVEFORM.md))
     N:  Overwrite `translator` with a custom implementation that matches the `BitPack` representation.
         Use functions like `tRef`, `tConst`, `tStyled`, `tDup` to make your life easier.
 N:  ? Is the type anteger?
-    Y:  Use `WaveformForNum` (see [this](NUMBERS.md))
+    Y:  Use `WaveformForNumber` (see [this](NUMBERS.md))
     N:  ? Constant?
         Y:  Use `WaveformConst` (see [this](CONSTANT.md))
         N:  Use WaveformLUT (see [this](LUTS.md))

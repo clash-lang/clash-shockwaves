@@ -4,15 +4,15 @@ and find yourself unable to derive a proper `Waveform` instance for your data ty
 Luckily, in this case you do not need a fully custom implementation of `Waveform`.
 
 Say you have some data type `MyInt` that you want to display.
-Then you can derive `Waveform` via `WaveformForNum`!
+Then you can derive `Waveform` via `WaveformForNumber`!
 
 ```hs
 import ...
 data MyNum = ...
-  deriving via WaveformForNum format spacer MyNum instance Waveform MyNum
+  deriving via WaveformForNumber format spacer MyNum instance Waveform MyNum
 ```
 
-As you can see, for using `WaveformForNum`, we need to provide some extra types.
+As you can see, for using `WaveformForNumber`, we need to provide some extra types.
 The first one, `format`, determines what you want your number to be translated into:
 - `NFSig` for signed decimal numbers (using two's complement)
 - `NFUns` for unsigned decimal numbers
@@ -33,7 +33,7 @@ we may write:
 
 ```hs
 ...
-  deriving via (WaveformForNum NFUns ('Just '(2,"_")) MyNum) instance Waveform MyNum
+  deriving via (WaveformForNumber NFUns ('Just '(2,"_")) MyNum) instance Waveform MyNum
 ```
 
 Some default spacers are defined. `NoSpacer` is the same as `'Nothing`.
