@@ -26,6 +26,7 @@ import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Proxy
 import Data.Typeable
 import GHC.IO (unsafeDupablePerformIO)
+import Tests.Types (Mix(x))
 
 {- | A folding function like scan that has separate output and continue values.
 The dataflow looks like:
@@ -163,3 +164,8 @@ erroringZipWith :: String -> (a -> b -> c) -> [a] -> [b] -> [c]
 erroringZipWith _ _ [] [] = []
 erroringZipWith e f (x : xs) (y : ys) = f x y : erroringZipWith e f xs ys
 erroringZipWith e _ _ _ = error e
+
+-- | 'head' but without complaints
+unsafeHead :: [a] -> a
+unsafeHead (x:_) = x
+unsafeHead _ = error "empty list has no head"

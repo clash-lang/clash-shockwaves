@@ -75,19 +75,7 @@ import Constants (mAX_TUPLE_SIZE)
 defaultRender :: Value -> Render
 defaultRender v = Just (v, WSDefault, 11)
 
--- | First 'WaveStyle' in an infinite list of values.
-styHead :: [WaveStyle] -> WaveStyle
-styHead (s : _) = s
-styHead _ = error "style list must be long enough"
-
 -- making translators
-
-{- | Wrap a t'Translator' in a 'TStyled' translator using some style, unless the
-provided style is 'WSDefault'.
--}
-wrapStyle :: WaveStyle -> Translator -> Translator
-wrapStyle WSDefault t = t
-wrapStyle s t = tStyled s t
 
 {- | Wrap a t'Translator' in a 'TStyled' variant translator with the
 provided style.
@@ -395,7 +383,7 @@ instance
   where
   translatorG _ sty = t'
    where
-    t' = case styHead sty of
+    t' = case unsafeHead sty of
       WSDefault ->
         if L.length subs == 1
           then
@@ -433,7 +421,7 @@ instance
   where
   translatorG _ sty = t'
    where
-    t' = case styHead sty of
+    t' = case unsafeHead sty of
       WSDefault ->
         if L.length subs == 1
           then
