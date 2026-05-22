@@ -26,8 +26,7 @@ module Clash.Shockwaves.LUT (
   tStaticLut,
 
   -- * Utility
-  tFromVal,
-  rFromVal,
+  defaultRender,
   safeWHNF,
   safeNF,
   safeNFOr,

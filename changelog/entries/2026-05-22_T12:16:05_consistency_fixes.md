@@ -14,3 +14,9 @@ Renamed `WfNum` to `WaveformForNumber`.
 
 # CHANGED
 Rename `styles` in `Waveform` to `constructorStyles`.
+
+# CHANGED
+Renamed `rFromVal` to `defaultRender`.
+
+# REMOVED
+Removed `tFromVal`.

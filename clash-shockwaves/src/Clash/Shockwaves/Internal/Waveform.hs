@@ -72,16 +72,8 @@ import Constants (mAX_TUPLE_SIZE)
 -- making values
 
 -- | Get a 'Render' from a 'Value' using 'WSDefault' and precedence 11.
-rFromVal :: Value -> Render
-rFromVal v = Just (v, WSDefault, 11)
-
--- | Get a t'Translation' from a 'Value' using 'WSDefault' and precedence 11.
-tFromVal :: Value -> Translation
-tFromVal v = Translation (rFromVal v) []
-
--- | Create an error value from an optional error message.
-errMsg :: Maybe Value -> Value
-errMsg = maybe "undefined" (\e -> "{undefined: " <> e <> "}")
+defaultRender :: Value -> Render
+defaultRender v = Just (v, WSDefault, 11)
 
 -- | First 'WaveStyle' in an infinite list of values.
 styHead :: [WaveStyle] -> WaveStyle
@@ -862,7 +854,7 @@ instance (KnownNat n, KnownSymbol s) => KnownNSpacer ('Just '(n, s)) where
 --------------------------------------- IMPLEMENTATIONS ----------------------------------
 
 instance WaveformConst () where
-  constRen = rFromVal "()"
+  constRen = defaultRender "()"
 deriving via WaveformForConst () instance Waveform ()
 
 -- | Configure styles through style variables @bool_false@ and @bool_true@.
@@ -970,7 +962,7 @@ instance (KnownNat n, Waveform a) => Waveform (Vec n a) where
             , sub = tRef @a
             }
         else
-          TConst $ tFromVal "Nil"
+          TConst $ Translation (defaultRender "Nil") []
 
 deriving via
   WaveformForNumber NFBin BinSpacer (BitVector n)
@@ -992,7 +984,7 @@ deriving via
 
 -- snat
 instance (KnownNat n, BitPack (SNat n)) => WaveformConst (SNat n) where
-  constRen = rFromVal $ show $ natVal $ Proxy @n
+  constRen = defaultRender $ show $ natVal $ Proxy @n
 deriving via
   WaveformForConst (SNat n)
   instance
