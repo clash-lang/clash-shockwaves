@@ -595,7 +595,7 @@ translateStaticL x = case staticLutL @a of
 
 -- | Make sure a t'Translation' is fully defined. If not, return a t'Translation' with @"undefined"@.
 safeTranslation :: Translation -> Translation
-safeTranslation = safeValOr (errorT "undefined")
+safeTranslation = safeNFOr (errorT "undefined")
 
 {- | Given a function that renders a value, and a function that (given this 'Render')
 prodices the subsignals, create a translation.
@@ -605,9 +605,9 @@ translateWith ::
   (a -> Render) -> (Render -> a -> [(SubSignal, Translation)]) -> a -> Translation
 translateWith d s x = Translation ren subs
  where
-  ren = safeValOr (errorR "undefined") $ d x
+  ren = safeNFOr (errorR "undefined") $ d x
   subs =
-    safeValOr []
+    safeNFOr []
       $ s ren x
 
 -- | Display a value with 'Show', the default wave style, and operator precedence determined using 'Generic'.

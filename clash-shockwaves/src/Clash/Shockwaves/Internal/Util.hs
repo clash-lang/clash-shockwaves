@@ -87,8 +87,8 @@ sym = symbolVal (Proxy @s)
 {- | Check if a value is completely defined.
 If not, optionally return an error message.
 -}
-safeVal :: (NFData a) => a -> Either (Maybe Value) a
-safeVal x =
+safeNFErr :: (NFData a) => a -> Either (Maybe Value) a
+safeNFErr x =
   unsafeDupablePerformIO
     $ catch
       ( evaluate
@@ -101,13 +101,15 @@ safeVal x =
       )
       (\(XException e) -> return $ Left (Just e))
 
+{- | Check if a value is completely defined. -}
+safeNF :: (NFData a) => a -> Maybe a
+safeNF = either (const Nothing) Just . safeNFErr
+
 {- | Check if a value is completely defined.
 If not, return the default value provided.
 -}
-safeValOr :: (NFData a) => a -> a -> a
-safeValOr y x = case safeVal x of
-  Right x' -> x'
-  Left _e -> y
+safeNFOr :: (NFData a) => a -> a -> a
+safeNFOr y x = fromMaybe y $ safeNF x
 
 -- | Evaluate to WHNF. If this fails, return a default value.
 safeWHNF :: a -> Maybe a
