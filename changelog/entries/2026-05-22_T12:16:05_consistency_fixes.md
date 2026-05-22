@@ -12,3 +12,5 @@ Renamed both `WaveformForLUT` and its constructor `WfLut` to `WaveformForLut`.
 # CHANGED
 Renamed `WfNum` to `WaveformForNumber`.
 
+# CHANGED
+Rename `styles` in `Waveform` to `constructorStyles`.

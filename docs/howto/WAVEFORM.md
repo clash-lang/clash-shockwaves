@@ -15,7 +15,7 @@ First, let's go through the functions and see what we need to do:
   instance Waveform (WaveformForX a) where
     typeName = defaultTypeName @a
   ```
-- `styles` is for adding constructor styles, and will likely go
+- `constructorStyles` is for adding constructor styles, and will likely go
   unused in a fully custom instance. For a guide on
   using styles, look [here](STYLES.md).
 

@@ -186,7 +186,7 @@ class (Typeable a, BitPack a) => Waveform a where
   -- | The translator used for the data type. Must match the structure value.
   translator :: Translator
   default translator :: (WaveformG (Rep a ())) => Translator
-  translator = defaultTranslator @a (styles @a)
+  translator = defaultTranslator @a (constructorStyles @a)
 
   {- | List of styles used for constructors.
 
@@ -195,8 +195,8 @@ class (Typeable a, BitPack a) => Waveform a where
   this list can be overridden to provides styles for the constructors, in order.
   To not change a style, use 'WSDefault'.
   -}
-  styles :: [WaveStyle]
-  styles = []
+  constructorStyles :: [WaveStyle]
+  constructorStyles = []
 
   {- |
   Defines the width of the translator based on @bitSize@
@@ -229,9 +229,9 @@ translateBin = translateBinT (translator @a)
 addTypes :: forall a. (Waveform a) => TypeMap -> TypeMap
 addTypes = addTypesT $ tRef @a
 
--- | Helper function that fills the 'styles' list with 'WSDefault'.
-styles' :: forall a. (Waveform a) => [WaveStyle]
-styles' = styles @a <> L.repeat WSDefault
+-- | Helper function that fills the 'constructorStyles' list with 'WSDefault'.
+constructorStyles' :: forall a. (Waveform a) => [WaveStyle]
+constructorStyles' = constructorStyles @a <> L.repeat WSDefault
 
 -- | Check if the type requires values to be added to LUTs.
 hasGeneratedLut :: forall a. (Waveform a) => Bool
@@ -877,7 +877,7 @@ instance (Waveform a) => Waveform (Maybe a) where
 
 -- | Configure styles through style variables @either_left@ and @either_right@.
 instance (Waveform a, Waveform b) => Waveform (Either a b) where
-  styles = ["$either_left", "$either_right"]
+  constructorStyles = ["$either_left", "$either_right"]
 
 instance (BitPack Char) => WaveformLUT Char where
   structureL = Structure []

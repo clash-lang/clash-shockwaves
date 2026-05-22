@@ -10,7 +10,7 @@ Y:  Derive `Waveform` / create `Waveform` instance (see [this](WAVEFORM.md))
     ? Standard structure ok?
     Y:  Keep most defaults.
         ? Do you want custom styles per constructor?
-        Y: Overwrite `styles` (see [this](STYLES.md))
+        Y: Overwrite `constructorStyles` (see [this](STYLES.md))
         N: Don't change a thing.
     N:  Overwrite `translator` with a custom implementation that matches the `BitPack` representation.
         Use functions like `tRef`, `tConst`, `tStyled`, `tDup` to make your life easier.

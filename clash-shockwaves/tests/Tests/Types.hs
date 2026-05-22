@@ -40,7 +40,7 @@ data St = St {a :: Bool, b :: Int}
 data C = Red | Green | Blue
   deriving (ShowX, BitPack, NFDataX, Generic, Typeable)
 instance Waveform C where
-  styles = [WSVar "red" "#f00", WSVar "green" "lime", WSVar "blue" "#0000ff"]
+  constructorStyles = [WSVar "red" "#f00", WSVar "green" "lime", WSVar "blue" "#0000ff"]
 
 infixr 6 :**:
 data Mix z

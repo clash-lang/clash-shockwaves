@@ -11,7 +11,7 @@ Everything needed to create custom implementations of 'Waveform'.
 -}
 module Clash.Shockwaves.Waveform (
   -- * The Waveform class
-  Waveform (translator, styles),
+  Waveform (translator, constructorStyles),
   translate,
   translateBin,
   hasGeneratedLut,

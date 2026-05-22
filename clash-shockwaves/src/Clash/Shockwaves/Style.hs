@@ -41,13 +41,13 @@ import Shockwaves.Style.Colors as C
 data Col = Red | Green | Blue | Yellow | Cyan | Magenta deriving ...
 
 instance Waveform Col where
-  styles = [ WSColor (RGB 255 0 0) -- RGB value
-           , wsColor C.lime        -- Colour value
-           , "blue"                -- color name
-           , "#ffff00"             -- hexadecimal color
-           , "$cyan"               -- style variable "cyan"; defaults to WSDefault
-           , WSVar "magenta"       -- style variable "magenta", defaults to #ff00ff
-                   "#f0f"
+  constructorStyles = [ WSColor (RGB 255 0 0) -- RGB value
+                      , wsColor C.lime        -- Colour value
+                      , "blue"                -- color name
+                      , "#ffff00"             -- hexadecimal color
+                      , "$cyan"               -- style variable "cyan"; defaults to WSDefault
+                      , WSVar "magenta"       -- style variable "magenta", defaults to #ff00ff
+                      ]
 @
 
 and in a translation:

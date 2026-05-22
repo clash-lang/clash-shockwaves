@@ -19,7 +19,7 @@ collisions with "Clash.Signal.Trace". Import qualified or selectively.
 -}
 module Clash.Shockwaves (
   -- * Waveform
-  Waveform (styles),
+  Waveform (constructorStyles),
   WaveStyle (..),
 
   -- * Tracing
