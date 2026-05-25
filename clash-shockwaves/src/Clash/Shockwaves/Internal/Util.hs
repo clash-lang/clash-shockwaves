@@ -26,7 +26,6 @@ import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Proxy
 import Data.Typeable
 import GHC.IO (unsafeDupablePerformIO)
-import Tests.Types (Mix(x))
 
 {- | A folding function like scan that has separate output and continue values.
 The dataflow looks like:
@@ -102,7 +101,7 @@ safeNFErr x =
       )
       (\(XException e) -> return $ Left (Just e))
 
-{- | Check if a value is completely defined. -}
+-- | Check if a value is completely defined.
 safeNF :: (NFData a) => a -> Maybe a
 safeNF = either (const Nothing) Just . safeNFErr
 
@@ -167,5 +166,5 @@ erroringZipWith e _ _ _ = error e
 
 -- | 'head' but without complaints
 unsafeHead :: [a] -> a
-unsafeHead (x:_) = x
+unsafeHead (x : _) = x
 unsafeHead _ = error "empty list has no head"
