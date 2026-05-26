@@ -47,12 +47,14 @@ module Clash.Shockwaves.Waveform (
   BitPart (..),
 
   -- ** Creating Translators
+  bitSize,
   pprintT,
   defaultTranslator,
-  bitSize,
+  withConstructorStyles,
+  inheritSingleFieldStyle,
   noConstructorSubsignals,
-  defaultTypeName,
   renameFields,
+  defaultTypeName,
   tRef,
   tDup,
   tStyled,
