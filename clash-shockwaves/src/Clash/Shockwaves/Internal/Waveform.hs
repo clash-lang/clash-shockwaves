@@ -267,6 +267,7 @@ noConstructorSubsignals _ t = t
 {- | Rename constructor fields. This is particularly useful for non-record types.
 The input is a list of a list of field names, per constructor.
 Errors if the number of constructors/fields does not match the structure of the 'Translator'.
+For translators other than 'TProduct', use an empty list of fieldnames.
 -}
 renameFields :: [[String]] -> Translator -> Translator
 renameFields names (Translator w (TStyled s t)) = Translator w $ TStyled s $ renameFields names t
@@ -294,7 +295,72 @@ renameFields names (Translator w p@TProduct{subs}) =
   fieldNames = case names of
     [x] -> x
     _ -> error ("Incorrect number of constructors: " <> show names)
-renameFields _ t = t
+renameFields [[]] t = t
+renameFields names t =
+  error
+    ( "renameFields encountered unexpected Translator for names "
+        <> show names
+        <> ": "
+        <> show t
+    )
+
+{- | Rename the constructors subsignals of a data type.
+Errors if the number of constructor subsignal names provided is incorrect,
+or when called on a translator that does not have a sum translator.
+-}
+renameConstructors :: [String] -> Translator -> Translator
+renameConstructors names (Translator w (TStyled s t)) = Translator w $ TStyled s $ renameConstructors names t
+renameConstructors names (Translator w (TDuplicate n t)) = Translator w $ TDuplicate n $ renameConstructors names t
+renameConstructors names (Translator w (TSum subs)) =
+  Translator w
+    $ TSum
+    $ erroringZipWith
+      ("Incorrect number of constructors:" <> show names)
+      renameConstructor
+      names
+      subs
+ where
+  renameConstructor :: String -> Translator -> Translator
+  renameConstructor name (Translator w' (TStyled s t)) = Translator w' $ TStyled s $ renameConstructor name t
+  renameConstructor name (Translator w' (TDuplicate _n t)) = Translator w' $ TDuplicate name t
+  renameConstructor _ t = t
+renameConstructors _ _ = error "renameFields called on translator without explicit constructors"
+
+{- | Wrap constructors with a single field in the @WSInherit 0@ style.
+Ignores any structures that are wrapped in a TStyled translator.
+-}
+inheritSingleFieldStyle :: Translator -> Translator
+inheritSingleFieldStyle t@(Translator _ (TStyled _ _)) = t
+inheritSingleFieldStyle (Translator w (TDuplicate n t)) = Translator w $ TDuplicate n $ inheritSingleFieldStyle t
+inheritSingleFieldStyle (Translator w (TSum ts)) = Translator w $ TSum $ L.map inheritSingleFieldStyle ts
+inheritSingleFieldStyle t@(Translator _ TProduct{subs}) = if L.length subs == 1 then tStyled (WSInherit 0) t else t
+inheritSingleFieldStyle t = t -- TODO: continue on AS,AP,P,Ar,CB
+
+{- | Apply constructor styles. This wraps 'TProduct' translators and modifies the style of 'TConst' translators.
+Does nothing if the list of styles is empty.
+Otherwise, errors if the number of styles does not match the number of constructors.
+-}
+withConstructorStyles :: [WaveStyle] -> Translator -> Translator
+withConstructorStyles [] t = t
+withConstructorStyles sty (Translator w (TDuplicate n t)) = Translator w $ TDuplicate n $ withConstructorStyles sty t
+withConstructorStyles sty (Translator w (TSum ts)) =
+  Translator w
+    $ TSum
+    $ erroringZipWith
+      "withConstructorStyles called with incorrect number of styles"
+      (\s t -> withConstructorStyles [s] t)
+      sty
+      ts
+withConstructorStyles [WSDefault] t = t
+withConstructorStyles [s] (Translator w (TStyled _ t)) = Translator w $ TStyled s t
+withConstructorStyles [s] (Translator w (TConst (Translation r ss))) = Translator w $ TConst $ Translation r' ss
+ where
+  r' = (\(v, _, p) -> (v, s, p)) <$> r
+withConstructorStyles [s] t = tStyled s t
+withConstructorStyles _ t =
+  error
+    $ "withConstructorStyles called with incorrect number of styles for translator "
+    <> show t
 
 ------------------------------------------- GENERIC -------------------------------------
 
