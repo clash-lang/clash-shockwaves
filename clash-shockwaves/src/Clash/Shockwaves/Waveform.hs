@@ -47,6 +47,7 @@ module Clash.Shockwaves.Waveform (
   BitPart (..),
 
   -- ** Creating Translators
+  pprintT,
   defaultTranslator,
   bitSize,
   noConstructorSubsignals,

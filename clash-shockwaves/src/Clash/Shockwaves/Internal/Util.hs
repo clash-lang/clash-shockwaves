@@ -11,8 +11,9 @@ Some small helper functions.
 -}
 module Clash.Shockwaves.Internal.Util where
 
-import Clash.Prelude
+import Clash.Prelude hiding (sub)
 import Clash.Shockwaves.Internal.Types
+import Clash.Shockwaves.Style (RGB (..))
 import Control.DeepSeq (NFData, force)
 import Control.Exception (SomeException, catch, evaluate)
 import Control.Exception.Base (Exception (toException))
@@ -22,7 +23,7 @@ import qualified Data.List as L
 import Data.List.Split (chunksOf)
 import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Maybe (fromMaybe, isJust, listToMaybe)
 import Data.Proxy
 import Data.Typeable
 import GHC.IO (unsafeDupablePerformIO)
@@ -161,3 +162,73 @@ erroringZipWith :: String -> (a -> b -> c) -> [a] -> [b] -> [c]
 erroringZipWith _ _ [] [] = []
 erroringZipWith e f (x : xs) (y : ys) = f x y : erroringZipWith e f xs ys
 erroringZipWith e _ _ _ = error e
+
+{- | Debug function for pretty printing t'Translator's.
+The output of this function may change. It is merely intended as a debug tool
+when creating and modifying translators.
+-}
+pprintT :: Translator -> String
+pprintT = pprintT' 0
+ where
+  pprintT' :: Int -> Translator -> String
+  pprintT' indent (Translator w v) =
+    space
+      <> ( case v of
+             TRef n _ref ->
+               trans "Ref" <> " " <> n
+             TLut n sLut _ref ->
+               trans "Lut" <> " (" <> (if isJust sLut then "static" else "generated") <> ") " <> n
+             TSum ts ->
+               (trans "Sum" <> "\n")
+                 <> joinWith "\n" (L.map (pprintT' indent') ts)
+             TAdvancedSum{defTrans, rangeTrans} ->
+               (trans "AdvancedSum" <> "\n")
+                 <> (space' <> "default" <> "\n")
+                 <> (pprintT' indent' defTrans <> "\n")
+                 <> (space' <> "subs" <> "\n")
+                 <> joinWith "\n" (L.map (pprintT' indent') (defTrans : L.map snd rangeTrans))
+             TProduct{subs, start, sep, stop} ->
+               (trans "Product" <> " ()" <> start <> "/" <> sep <> "/" <> stop <> ")")
+                 <> L.concatMap (\(s, t) -> "\n" <> space' <> s <> "\n" <> pprintT' indent' t) subs
+             TArray{sub, len, start, sep, stop} ->
+               ( (trans "Array" <> " len:" <> show len)
+                   <> (" (" <> start <> "/" <> sep <> "/" <> stop <> ")\n")
+               )
+                 <> pprintT' indent' sub
+             TAdvancedProduct{sliceTrans} ->
+               (trans "AdvancedProduct" <> "\n")
+                 <> joinWith "\n" (L.map (pprintT' indent' . snd) sliceTrans)
+             TDuplicate n t ->
+               (trans "Dup" <> space' <> n <> "\n")
+                 <> pprintT' indent' t
+             TStyled sty t ->
+               (trans "Styled" <> " " <> showStyle sty <> "\n")
+                 <> pprintT' indent' t
+             TChangeBits{sub} ->
+               (trans "ChangeBits" <> "\n")
+                 <> pprintT' indent' sub
+             TNumber{format} ->
+               trans "Number" <> " " <> show format
+             TConst (Translation val _) ->
+               trans "Const" <> " " <> case val of
+                 Just (val', _, _) -> val'
+                 _ -> "_"
+         )
+   where
+    space = L.replicate indent ' '
+    space' = L.replicate (indent + 2) ' '
+    trans s = s <> "[" <> show w <> "]"
+    indent' = indent + 4
+    showStyle = \case
+      WSDefault -> "Default"
+      WSError -> "Error"
+      WSHidden -> "Hidden"
+      WSInherit n -> "Inherit " <> show n
+      WSNormal -> "Normal"
+      WSWarn -> "Warn"
+      WSUndef -> "Undef"
+      WSHighImp -> "HighImp"
+      WSDontCare -> "DontCate"
+      WSWeak -> "Weak"
+      WSColor (RGB r g b) -> "Color (" <> show r <> "," <> show g <> "," <> show b <> ")"
+      WSVar var dflt -> "$" <> var <> "/" <> showStyle dflt
