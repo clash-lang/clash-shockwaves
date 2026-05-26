@@ -1,8 +1,8 @@
-## 1.0.1 - *11 May, 2026*
+## v1.0.1 - *11 May, 2026*
 
 Shockwaves now supports Clash 1.10!
 
-## v1.0.0 *07 Apr 2026*
+## v1.0.0 - *07 Apr, 2026*
 
 The first official full release!
 
@@ -52,7 +52,7 @@ but more features and improvements are already on their way!
   [#72](https://github.com/clash-lang/clash-shockwaves/issues/72)
 - Made the code compatible with the stack LTS-23.28 resolver (GHC 9.8.4).
 
-## v0.0.1hd *04 Mar 2026*
+## v0.0.1hd - *04 Mar, 2026*
 
 ### Added:
 - Added proper links and instructions for adding dependencies to the setup HOWTO guide.
@@ -69,6 +69,6 @@ but more features and improvements are already on their way!
 - `Maybe` accidentally used style variable `$maybe_just` instead of `maybe_just`.
   [#38](https://github.com/clash-lang/clash-shockwaves/issues/38)
 
-## v0.0.0hsd *04 Mar 2026*
+## v0.0.0hsd - *04 Mar, 2026*
 
 Initial release.
