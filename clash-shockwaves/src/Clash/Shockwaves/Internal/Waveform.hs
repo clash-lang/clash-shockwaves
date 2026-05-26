@@ -972,10 +972,29 @@ instance (KnownNat n, Waveform a) => Waveform (Vec n a) where
         else
           TConst $ tFromVal "Nil"
 
-deriving via
-  WaveformForNumber NFBin BinSpacer (BitVector n)
-  instance
-    (KnownNat n) => Waveform (BitVector n)
+-- deriving via
+--   WaveformForNumber NFBin BinSpacer (BitVector n)
+--   instance
+--     (KnownNat n) => Waveform (BitVector n)
+
+instance (KnownNat n) => Waveform (BitVector n) where
+  translator =
+    Translator n
+      $ TChangeBits (BPConcat [BPHasUndefined BPIn, BPIn])
+      $ Translator (n + 1)
+      $ TSum [t, tStyled WSWarn t]
+   where
+    t =
+      Translator n
+        $ TAdvancedProduct
+          { sliceTrans = bits <> [((0, n), num)]
+          , hierarchy = L.map (\i -> (show (n - 1 - i), i)) [0 .. n - 1]
+          , valueParts = [VPRef n 0]
+          , preco = 11
+          }
+    bits = L.map (\i -> ((i, i + 1), tRef @Bit)) [0 .. n - 1]
+    num = Translator n $ TNumber NFBin (Just (8, "_")) "0b" True
+    n = bitSize @(BitVector n)
 
 -- fixed point
 instance

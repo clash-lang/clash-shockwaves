@@ -285,8 +285,8 @@ data TranslatorVariant
     onto the subtranslator.
     -}
     TChangeBits
-      { sub :: Translator
-      , bits :: BitPart
+      { bits :: BitPart
+      , sub :: Translator
       }
   | {- | Translate the binary data as an integer. @format@ and @spacer@ determine
     how exactly the value is displayed.
