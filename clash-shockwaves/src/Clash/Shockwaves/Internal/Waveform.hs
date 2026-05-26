@@ -919,14 +919,17 @@ deriving via WaveformForConst () instance Waveform ()
 
 -- | Configure styles through style variables @bool_false@ and @bool_true@.
 instance Waveform Bool where
-  translator = noConstructorSubsignals False $ withConstructorStyles ["$bool_false", "$bool_true"] $ defaultTranslator @Bool
+  translator =
+    noConstructorSubsignals False
+      $ withConstructorStyles ["$bool_false", "$bool_true"]
+      $ defaultTranslator @Bool
 
 -- | Configure styles through style variables @maybe_nothing@ and @maybe_just@.
 instance (Waveform a) => Waveform (Maybe a) where
   translator =
     noConstructorSubsignals True
       $ withConstructorStyles ["$maybe_nothing", WSVar "maybe_just" $ WSInherit 0]
-        $ defaultTranslator @(Maybe a)
+      $ defaultTranslator @(Maybe a)
 
 -- | Configure styles through style variables @either_left@ and @either_right@.
 instance (Waveform a, Waveform b) => Waveform (Either a b) where
