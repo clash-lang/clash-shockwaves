@@ -253,7 +253,7 @@ impl BitPart {
             ),
             BitPart::And(bps) | BitPart::Or(bps) | BitPart::Xor(bps) => {
                 let mut parts = bps.iter().map(|bp| bp.from(bits)).collect::<Vec<_>>();
-                let n = parts.iter().map(|b| b.as_ref().len()).max().unwrap();
+                let n = parts.iter().map(|b| b.as_ref().len()).max().unwrap(); // unwrap fails when the list is empty
                 parts.iter_mut().for_each(|b| {
                     let l = b.as_ref().len();
                     if l != n {
@@ -265,7 +265,7 @@ impl BitPart {
                     .map(|i| {
                         parts
                             .iter()
-                            .map(|b| b.as_ref().chars().nth(i).unwrap())
+                            .map(|b| b.as_ref().chars().nth(i).unwrap()) // indexing cannot fail here because all shorter inputs get extended
                             .collect()
                     })
                     .collect::<Vec<Vec<_>>>();
@@ -419,7 +419,7 @@ impl Translation {
             return;
         };
 
-        self.0.as_mut().unwrap().1 =
+        self.0.as_mut().unwrap().1 = //unwrap is safe due to return above
             if let Some((_name, Translation(Some((_v, s, _p)), _))) = self.1.get(*n) {
                 s.clone()
             } else {
@@ -432,7 +432,7 @@ impl Translation {
 impl State {
     /// Translate a value.
     pub fn translate(&mut self, signal: &str, value: &str) -> TranslationResult {
-        let ty = self.data.get_type(signal).unwrap().clone();
+        let ty = self.data.get_type(signal).unwrap().clone(); // if the type of the signal is unknown, the plugin reports not being able to translate it
         let translator = self.data.get_translator(&ty);
         let mut translation = self.translate_with(translator, value);
 

@@ -88,7 +88,7 @@ impl TranslatorVariant {
                         "SHOCKWAVES: Sum translator for {source:?} has insufficient bits to supply subtranslator"
                     );
                 } else if rest < width - tag {
-                    warn!("SSHOCKWAVES: um translator for {source:?} has unused bits");
+                    warn!("SHOCKWAVES: Sum translator for {source:?} has unused bits");
                 }
 
                 subs.iter_mut().for_each(|s| s.verify(source, translators));
@@ -283,6 +283,9 @@ impl BitPart {
                 .collect::<Result<Option<Vec<_>>, &str>>()?
                 .map(|v| v.iter().sum())),
             BitPart::Slice((from, to), sub) => {
+                if to < from {
+                    return Err("BitPart Slice of negative length");
+                }
                 match sub.verify(inputsize, source)? {
                     Some(w) if w < *to as u32 => return Err("Slice receives insufficient bits"),
                     Some(_) => {}
