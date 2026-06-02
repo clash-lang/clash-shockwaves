@@ -236,7 +236,7 @@ toT (Translation ren subs) = T d $ L.map (second toT) subs
     Nothing -> ("", WSNormal)
 
 pat :: (Show t) => (t -> Int) -> t -> Assertion
-pat f v = case safeVal (f v) of
+pat f v = case safeNFErr (f v) of
   Right _ -> return ()
   Left e -> assertFailure $ show v <> ": " <> fromMaybe "error" e
 

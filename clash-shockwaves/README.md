@@ -66,7 +66,7 @@ that appear in the output. This requires `Generic` and `Typeable` to also be der
 ## Adding coloured constructors
 
 It might be useful to mark the different constructors of a type using various colors.
-To do this, one simply needs to do a custom implementation of Waveform where `styles`
+To do this, one simply needs to do a custom implementation of Waveform where `constructorStyles`
 is overwritten with a list of waveform styles, in the order that the constructors appear.
 
 ## Custom Waveform instances

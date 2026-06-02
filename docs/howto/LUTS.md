@@ -13,7 +13,7 @@ simply retreived using the binary representations in the VCD file.
 Since using LUTs is generally much simpler than doing a full `Waveform` implementation,
 Shockwaves provides the `WaveformLUT` class that has some functions for making the process
 easier. To connect the instance of `Waveform` to that of `WaveformLUT`, it can be derived
-via `WaveformForLUT`.
+via `WaveformForLut`.
 
 There are two ways to use `WaveformLUT`: you either create a static LUT, providing all
 translations yourself, or you create a generated LUT by providing a translation function.
@@ -67,13 +67,13 @@ and a generated LUT if `staticL` is `Nothing`.
 ### GENERATED LUTS: CHANGING THE RENDER VALUE
 
 Since `WaveformLUT` uses `Show` by default, it's very easy to change the text value of a signal:
-derive `Waveform` via `WaveformForLUT`, create a `WaveformLUT` instance,
+derive `Waveform` via `WaveformForLut`, create a `WaveformLUT` instance,
 and simply overwrite `Show`:
 
 ```hs
 data MyEither a b c = Left a | Middle b | Right c
   deriving (BitPack,Generic,Typeable,NFDataX)
-  deriving Waveform via (WaveformForLUT (MyEither a b c))
+  deriving Waveform via (WaveformForLut (MyEither a b c))
 
 instance (Show a, Show b, Show c) => Show (MyEither a b c)
   showsPrec d (Left   x) = showParen (d > 10) $ showString "L " . showsPrec 11 x
@@ -118,7 +118,7 @@ import Clash.Shockwaves.Style
 
 data MyRGB = MyRGB Int Int Int
   deriving (Generic,Typeable,NFDataX,BitPack)
-  deriving Waveform via WaveformForLUT MyRGB
+  deriving Waveform via WaveformForLut MyRGB
 
 hex n = showHex (n `div` 16) . showHex (n `rem` 16)
 

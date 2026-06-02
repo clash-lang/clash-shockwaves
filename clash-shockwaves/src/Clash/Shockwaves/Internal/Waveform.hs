@@ -72,30 +72,10 @@ import Constants (mAX_TUPLE_SIZE)
 -- making values
 
 -- | Get a 'Render' from a 'Value' using 'WSDefault' and precedence 11.
-rFromVal :: Value -> Render
-rFromVal v = Just (v, WSDefault, 11)
-
--- | Get a t'Translation' from a 'Value' using 'WSDefault' and precedence 11.
-tFromVal :: Value -> Translation
-tFromVal v = Translation (rFromVal v) []
-
--- | Create an error value from an optional error message.
-errMsg :: Maybe Value -> Value
-errMsg = maybe "undefined" (\e -> "{undefined: " <> e <> "}")
-
--- | First 'WaveStyle' in an infinite list of values.
-styHead :: [WaveStyle] -> WaveStyle
-styHead (s : _) = s
-styHead _ = error "style list must be long enough"
+defaultRender :: Value -> Render
+defaultRender v = Just (v, WSDefault, 11)
 
 -- making translators
-
-{- | Wrap a t'Translator' in a 'TStyled' translator using some style, unless the
-provided style is 'WSDefault'.
--}
-wrapStyle :: WaveStyle -> Translator -> Translator
-wrapStyle WSDefault t = t
-wrapStyle s t = tStyled s t
 
 {- | Wrap a t'Translator' in a 'TStyled' variant translator with the
 provided style.
@@ -186,7 +166,7 @@ class (Typeable a, BitPack a) => Waveform a where
   -- | The translator used for the data type. Must match the structure value.
   translator :: Translator
   default translator :: (WaveformG (Rep a ())) => Translator
-  translator = inheritSingleFieldStyle $ withConstructorStyles (styles @a) $ defaultTranslator @a
+  translator = inheritSingleFieldStyle $ withConstructorStyles (constructorStyles @a) $ defaultTranslator @a
 
   {- | List of styles used for constructors.
 
@@ -195,8 +175,8 @@ class (Typeable a, BitPack a) => Waveform a where
   this list can be overridden to provides styles for the constructors, in order.
   To not change a style, use 'WSDefault'.
   -}
-  styles :: [WaveStyle]
-  styles = []
+  constructorStyles :: [WaveStyle]
+  constructorStyles = []
 
   {- |
   Defines the width of the translator based on @bitSize@
@@ -229,9 +209,9 @@ translateBin = translateBinT (translator @a)
 addTypes :: forall a. (Waveform a) => TypeMap -> TypeMap
 addTypes = addTypesT $ tRef @a
 
--- | Helper function that fills the 'styles' list with 'WSDefault'.
-styles' :: forall a. (Waveform a) => [WaveStyle]
-styles' = styles @a <> L.repeat WSDefault
+-- | Helper function that fills the 'constructorStyles' list with 'WSDefault'.
+constructorStyles' :: forall a. (Waveform a) => [WaveStyle]
+constructorStyles' = constructorStyles @a <> L.repeat WSDefault
 
 -- | Check if the type requires values to be added to LUTs.
 hasGeneratedLut :: forall a. (Waveform a) => Bool
@@ -603,7 +583,7 @@ instance (Waveform t) => WaveformG (S1 (MetaSel Nothing p q r) (Rec0 t) k) where
 
 {- |
 Class for easily defining custom translations for a type by using LUTs.
-To use this class, a type must derive 'Waveform' via 'WaveformForLUT'.
+To use this class, a type must derive 'Waveform' via 'WaveformForLut'.
 
 Bye default, the implementation uses 'GHC.Generics.Generic' for defining subsignals
 and operator precedence, and 'Show' for displaying the value.
@@ -647,7 +627,7 @@ translateStaticL x = case staticLutL @a of
 
 -- | Make sure a t'Translation' is fully defined. If not, return a t'Translation' with @"undefined"@.
 safeTranslation :: Translation -> Translation
-safeTranslation = safeValOr (errorT "undefined")
+safeTranslation = safeNFOr (errorT "undefined")
 
 {- | Given a function that renders a value, and a function that (given this 'Render')
 prodices the subsignals, create a translation.
@@ -657,9 +637,9 @@ translateWith ::
   (a -> Render) -> (Render -> a -> [(SubSignal, Translation)]) -> a -> Translation
 translateWith d s x = Translation ren subs
  where
-  ren = safeValOr (errorR "undefined") $ d x
+  ren = safeNFOr (errorR "undefined") $ d x
   subs =
-    safeValOr []
+    safeNFOr []
       $ s ren x
 
 -- | Display a value with 'Show', the default wave style, and operator precedence determined using 'Generic'.
@@ -717,17 +697,17 @@ precL x = precG (from @_ @() x)
 
 @
 type T = ... deriving (...)
-deriving via WaveformForLUT T instance Waveform T
+deriving via WaveformForLut T instance Waveform T
 
 isntance WaveformLUT T where
   ...
 @
 -}
-newtype WaveformForLUT a = WfLUT a deriving (Generic, BitPack, Typeable)
+newtype WaveformForLut a = WaveformForLut a deriving (Generic, BitPack, Typeable)
 
 instance
   (Waveform a, WaveformLUT a, BitPack a, Typeable a) =>
-  Waveform (WaveformForLUT a)
+  Waveform (WaveformForLut a)
   where
   typeName = defaultTypeName @a
 
@@ -839,7 +819,7 @@ deriving via WaveformForNumber NFSig ('Just '(3,"_")) instance Waveform (Signed 
 @
 -}
 newtype WaveformForNumber (f :: NumberFormat) (s :: Maybe NSPair) a
-  = WfNum a
+  = WaveformForNumber a
   deriving (Generic, BitPack, Typeable)
 
 -- | Pair of a 'Nat' and 'Symbol', used for type-level spacer values.
@@ -914,7 +894,7 @@ instance (KnownNat n, KnownSymbol s) => KnownNSpacer ('Just '(n, s)) where
 --------------------------------------- IMPLEMENTATIONS ----------------------------------
 
 instance WaveformConst () where
-  constRen = rFromVal "()"
+  constRen = defaultRender "()"
 deriving via WaveformForConst () instance Waveform ()
 
 -- | Configure styles through style variables @bool_false@ and @bool_true@.
@@ -933,12 +913,12 @@ instance (Waveform a) => Waveform (Maybe a) where
 
 -- | Configure styles through style variables @either_left@ and @either_right@.
 instance (Waveform a, Waveform b) => Waveform (Either a b) where
-  styles = ["$either_left", "$either_right"]
+  constructorStyles = ["$either_left", "$either_right"]
 
 instance (BitPack Char) => WaveformLUT Char where
   structureL = Structure []
   translateL = translateAtomShow
-deriving via WaveformForLUT Char instance (BitPack Char) => Waveform Char
+deriving via WaveformForLut Char instance (BitPack Char) => Waveform Char
 
 instance WaveformLUT Bit where
   staticL =
@@ -949,17 +929,17 @@ instance WaveformLUT Bit where
       ]
   structureL = undefined -- Structure []
   translateL = undefined -- translateAtomShow
-deriving via WaveformForLUT Bit instance Waveform Bit
+deriving via WaveformForLut Bit instance Waveform Bit
 
 instance WaveformLUT Double where
   structureL = Structure []
   translateL = translateAtomSigShow
-deriving via WaveformForLUT Double instance Waveform Double
+deriving via WaveformForLut Double instance Waveform Double
 
 instance WaveformLUT Float where
   structureL = Structure []
   translateL = translateAtomSigShow
-deriving via WaveformForLUT Float instance Waveform Float
+deriving via WaveformForLut Float instance Waveform Float
 
 deriving via WaveformForNumber NFSig DecSpacer Int instance Waveform Int
 deriving via WaveformForNumber NFSig DecSpacer Int8 instance Waveform Int8
@@ -1026,7 +1006,7 @@ instance (KnownNat n, Waveform a) => Waveform (Vec n a) where
             , sub = tRef @a
             }
         else
-          TConst $ tFromVal "Nil"
+          TConst $ Translation (defaultRender "Nil") []
 
 -- deriving via
 --   WaveformForNumber NFBin BinSpacer (BitVector n)
@@ -1060,14 +1040,14 @@ instance
   structureL = Structure []
   translateL = translateAtomSigShow
 deriving via
-  WaveformForLUT (Fixed r i f)
+  WaveformForLut (Fixed r i f)
   instance
     (BitPack (Fixed r i f), KnownNat i, KnownNat f, Show (Fixed r i f), Typeable r) =>
     Waveform (Fixed r i f)
 
 -- snat
 instance (KnownNat n, BitPack (SNat n)) => WaveformConst (SNat n) where
-  constRen = rFromVal $ show $ natVal $ Proxy @n
+  constRen = defaultRender $ show $ natVal $ Proxy @n
 deriving via
   WaveformForConst (SNat n)
   instance

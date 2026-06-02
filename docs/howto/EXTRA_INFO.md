@@ -30,7 +30,7 @@ import Clash.Shockwaves.LUT
 
 data Coordinate = Coordinate Int Int
   deriving (Typeable,Generic,BitPack,NFDataX,Show)
-  deriving Waveform via WaveformForLUT Coordinate
+  deriving Waveform via WaveformForLut Coordinate
 
 instance WaveformLUT Coordinate where
 

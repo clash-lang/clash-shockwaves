@@ -52,7 +52,7 @@ vairable @reset_on_enable_off@.
 -}
 data CREWave dom = CREWave {clock :: ClockWave, reset :: ResetWave dom, enable :: EnableWave}
   deriving (Generic, Typeable, BitPack, NFDataX)
-  deriving (Waveform) via (WaveformForLUT (CREWave dom))
+  deriving (Waveform) via (WaveformForLut (CREWave dom))
 
 vConst :: Render -> Translator
 vConst r = Translator 0 $ TConst $ tConst r
