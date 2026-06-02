@@ -167,7 +167,6 @@ class (Typeable a, BitPack a) => Waveform a where
   translator :: Translator
   default translator :: (WaveformG (Rep a ())) => Translator
   translator = inheritSingleFieldStyle $ withConstructorStyles (constructorStyles @a) $ defaultTranslator @a
-
   {- | List of styles used for constructors.
 
   Since assigning different constructors different colors is a very common usecase
