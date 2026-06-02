@@ -24,8 +24,8 @@ To remove constructor subsignals, use `noConstructorSubsignals` on the `defaultT
 
 ```hs
 instance Waveform MyType where
-  translator = noConstructorSubsignals True $ defaultTranslator @MyType (styles @MyType)
-  styles = ...
+  translator = noConstructorSubsignals True $ defaultTranslator @MyType (constructorStyles @MyType)
+  constructorStyles = ...
 ```
 
 The first argument to `noConstructorSubsignals` determines whether or not to rename field subsignals.

@@ -377,7 +377,7 @@ addValueT translator@(Translator _ variant) =
       TLut name Nothing TypeRef{translateBinRef} -> go
        where
         go bin =
-          let translation = safeValOr (errorT "error") (translateBinRef bin)
+          let translation = safeNFOr (errorT "error") (translateBinRef bin)
            in [M.alter (Just . insertIfMissing bin translation . fromMaybe M.empty) name]
       TConst _ -> const []
       TNumber{} -> const []

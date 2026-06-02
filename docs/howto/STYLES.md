@@ -15,7 +15,7 @@ data Instr = Add | Sub | Mul | Div
 ### PICKING A WAVESTYLE
 There are a number of standard styles to pick from, corresponding to different
 VCD value types:
-- `WSDefault`: The default style. Gets overwritten by the `TStyled` translator and does nothing when adding to the `styles` list in `Waveform`.
+- `WSDefault`: The default style. Gets overwritten by the `TStyled` translator and does nothing when adding to the `constructorStyles` list in `Waveform`.
 - `WSError`: An error. This looks the same as `WSWarn`, but is propagated upwards through the hierarchy.
 - `WSHidden`: Do not display the style at all.
 - `WSInherit`: Inherit the style of the n-th subsignal.
@@ -96,10 +96,10 @@ topmost signal.
 Now it is time to add the wavestyles we picked to the design.
 Since marking constructors is a common usecase, constructor colors were added
 to the default derivation of `Waveform`. All we need to do is create a `Waveform`
-instance and overwrite the `styles` list:
+instance and overwrite the `constructorStyles` list:
 
 ```hs
 data Instr = Add | Sub | Mul | Div deriving (...)
 instance Waveform Instr where
-  styles = ["green", wsColor red, "#11f", WSColor (RGB 100 0 255)]
+  constructorStyles = ["green", wsColor red, "#11f", WSColor (RGB 100 0 255)]
 ```
