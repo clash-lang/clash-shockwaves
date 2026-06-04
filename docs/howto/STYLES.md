@@ -103,3 +103,6 @@ data Instr = Add | Sub | Mul | Div deriving (...)
 instance Waveform Instr where
   constructorStyles = ["green", wsColor red, "#11f", WSColor (RGB 100 0 255)]
 ```
+
+Note that the number of styles provided must match the number of constructors
+in the datatype.

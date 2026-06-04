@@ -166,7 +166,10 @@ class (Typeable a, BitPack a) => Waveform a where
   -- | The translator used for the data type. Must match the structure value.
   translator :: Translator
   default translator :: (WaveformG (Rep a ())) => Translator
-  translator = defaultTranslator @a (constructorStyles @a)
+  translator =
+    inheritSingleFieldStyle
+      $ withConstructorStyles (constructorStyles @a)
+      $ defaultTranslator @a
 
   {- | List of styles used for constructors.
 
@@ -188,8 +191,8 @@ class (Typeable a, BitPack a) => Waveform a where
 This default can be modified to obtain a slightly different translator.
 -}
 defaultTranslator ::
-  forall a. (Waveform a, WaveformG (Rep a ())) => [WaveStyle] -> Translator
-defaultTranslator sty = translatorG @(Rep a ()) (bitSize @a) (sty <> L.repeat WSDefault)
+  forall a. (Waveform a, WaveformG (Rep a ())) => Translator
+defaultTranslator = translatorG @(Rep a ()) (bitSize @a)
 
 {- | Function to translate values. This function creates a translation from
 the binary representation of the data using translateBin, and the translator.
@@ -247,6 +250,7 @@ noConstructorSubsignals _ t = t
 {- | Rename constructor fields. This is particularly useful for non-record types.
 The input is a list of a list of field names, per constructor.
 Errors if the number of constructors/fields does not match the structure of the 'Translator'.
+For translators other than 'TProduct', use an empty list of fieldnames.
 -}
 renameFields :: [[String]] -> Translator -> Translator
 renameFields names (Translator w (TStyled s t)) = Translator w $ TStyled s $ renameFields names t
@@ -274,7 +278,72 @@ renameFields names (Translator w p@TProduct{subs}) =
   fieldNames = case names of
     [x] -> x
     _ -> error ("Incorrect number of constructors: " <> show names)
-renameFields _ t = t
+renameFields [[]] t = t
+renameFields names t =
+  error
+    ( "renameFields encountered unexpected Translator for names "
+        <> show names
+        <> ": "
+        <> show t
+    )
+
+{- | Rename the constructors subsignals of a data type.
+Errors if the number of constructor subsignal names provided is incorrect,
+or when called on a translator that does not have a sum translator.
+-}
+renameConstructors :: [String] -> Translator -> Translator
+renameConstructors names (Translator w (TStyled s t)) = Translator w $ TStyled s $ renameConstructors names t
+renameConstructors names (Translator w (TDuplicate n t)) = Translator w $ TDuplicate n $ renameConstructors names t
+renameConstructors names (Translator w (TSum subs)) =
+  Translator w
+    $ TSum
+    $ erroringZipWith
+      ("Incorrect number of constructors:" <> show names)
+      renameConstructor
+      names
+      subs
+ where
+  renameConstructor :: String -> Translator -> Translator
+  renameConstructor name (Translator w' (TStyled s t)) = Translator w' $ TStyled s $ renameConstructor name t
+  renameConstructor name (Translator w' (TDuplicate _n t)) = Translator w' $ TDuplicate name t
+  renameConstructor _ t = t
+renameConstructors _ _ = error "renameFields called on translator without explicit constructors"
+
+{- | Wrap constructors with a single field in the @WSInherit 0@ style.
+Ignores any structures that are wrapped in a TStyled translator.
+-}
+inheritSingleFieldStyle :: Translator -> Translator
+inheritSingleFieldStyle t@(Translator _ (TStyled _ _)) = t
+inheritSingleFieldStyle (Translator w (TDuplicate n t)) = Translator w $ TDuplicate n $ inheritSingleFieldStyle t
+inheritSingleFieldStyle (Translator w (TSum ts)) = Translator w $ TSum $ L.map inheritSingleFieldStyle ts
+inheritSingleFieldStyle t@(Translator _ TProduct{subs}) = if L.length subs == 1 then tStyled (WSInherit 0) t else t
+inheritSingleFieldStyle t = t -- TODO: continue on AS,AP,P,Ar,CB
+
+{- | Apply constructor styles. This wraps 'TProduct' translators and modifies the style of 'TConst' translators.
+Does nothing if the list of styles is empty.
+Otherwise, errors if the number of styles does not match the number of constructors.
+-}
+withConstructorStyles :: [WaveStyle] -> Translator -> Translator
+withConstructorStyles [] t = t
+withConstructorStyles sty (Translator w (TDuplicate n t)) = Translator w $ TDuplicate n $ withConstructorStyles sty t
+withConstructorStyles sty (Translator w (TSum ts)) =
+  Translator w
+    $ TSum
+    $ erroringZipWith
+      "withConstructorStyles called with incorrect number of styles"
+      (\s t -> withConstructorStyles [s] t)
+      sty
+      ts
+withConstructorStyles [WSDefault] t = t
+withConstructorStyles [s] (Translator w (TStyled _ t)) = Translator w $ TStyled s t
+withConstructorStyles [s] (Translator w (TConst (Translation r ss))) = Translator w $ TConst $ Translation r' ss
+ where
+  r' = (\(v, _, p) -> (v, s, p)) <$> r
+withConstructorStyles [s] t = tStyled s t
+withConstructorStyles _ t =
+  error
+    $ "withConstructorStyles called with incorrect number of styles for translator "
+    <> show t
 
 ------------------------------------------- GENERIC -------------------------------------
 
@@ -286,13 +355,13 @@ class WaveformG a where
 
   Defined only for full types and constructors
   -}
-  translatorG :: Int -> [WaveStyle] -> Translator
+  translatorG :: Int -> Translator
 
   {- | Return a list of translators for constructors as subsignals.
 
   Defined for constructors, @:+:@ and types with multiple constructors.
   -}
-  constrTranslatorsG :: [WaveStyle] -> [Translator]
+  constrTranslatorsG :: [Translator]
 
   {- | Return a list of translators for fields.
 
@@ -326,8 +395,8 @@ class WaveformG a where
 
 -- void type (assuming it has a custom bitpack implementation)
 instance WaveformG (D1 m1 V1 k) where
-  translatorG _ _ = tConst Nothing
-  constrTranslatorsG _ = undefined
+  translatorG _ = tConst Nothing
+  constrTranslatorsG = undefined
   fieldTranslatorsG = undefined
 
   widthG = undefined
@@ -350,7 +419,7 @@ instance (WaveformG (C1 m2 s k), WaveformG (s k)) => WaveformG (D1 m1 (C1 m2 s) 
 
 -- multiple constructors type
 instance (WaveformG ((a :+: b) k)) => WaveformG (D1 m1 (a :+: b) k) where
-  translatorG w sty = Translator w . TSum $ constrTranslatorsG @((a :+: b) k) sty
+  translatorG w = Translator w . TSum $ constrTranslatorsG @((a :+: b) k)
   constrTranslatorsG = constrTranslatorsG @((a :+: b) k)
   fieldTranslatorsG = undefined
 
@@ -362,10 +431,10 @@ instance (WaveformG ((a :+: b) k)) => WaveformG (D1 m1 (a :+: b) k) where
 -- multiple constructors
 instance (WaveformG (a k), WaveformG (b k)) => WaveformG ((a :+: b) k) where
   translatorG = undefined
-  constrTranslatorsG sty = a <> b
+  constrTranslatorsG = a <> b
    where
-    a = constrTranslatorsG @(a k) sty
-    b = constrTranslatorsG @(b k) (L.drop (L.length a) sty)
+    a = constrTranslatorsG @(a k)
+    b = constrTranslatorsG @(b k)
   fieldTranslatorsG = undefined
 
   widthG = undefined
@@ -381,15 +450,8 @@ instance
   (WaveformG (fields k), KnownSymbol name) =>
   WaveformG (C1 (MetaCons name fix True) fields k)
   where
-  translatorG _ sty = t'
+  translatorG _ = t
    where
-    t' = case unsafeHead sty of
-      WSDefault ->
-        if L.length subs == 1
-          then
-            tStyled (WSInherit 0) t
-          else t
-      s -> tStyled s t
     subs = fieldTranslatorsG @(C1 (MetaCons name fix True) fields k)
     t =
       Translator (widthG @(fields k))
@@ -403,9 +465,9 @@ instance
           , subs = subs
           }
 
-  constrTranslatorsG sty =
+  constrTranslatorsG =
     [ tDup (sym @name)
-        $ translatorG @(C1 (MetaCons name fix True) fields k) undefined sty
+        $ translatorG @(C1 (MetaCons name fix True) fields k) undefined
     ]
   fieldTranslatorsG = fieldTranslatorsG @(fields k)
 
@@ -419,15 +481,8 @@ instance
   (WaveformG (fields k), KnownSymbol name, PrecF fix) =>
   WaveformG (C1 (MetaCons name fix False) fields k)
   where
-  translatorG _ sty = t'
+  translatorG _ = t
    where
-    t' = case unsafeHead sty of
-      WSDefault ->
-        if L.length subs == 1
-          then
-            tStyled (WSInherit 0) t
-          else t
-      s -> tStyled s t
     subs = fieldTranslatorsG @(C1 (MetaCons name fix False) fields k)
     t =
       if isOperator
@@ -461,9 +516,9 @@ instance
     sname = safeName (sym @name)
     isOperator = not (isAlpha $ fromMaybe '_' $ listToMaybe $ sym @name) && (L.length subs == 2)
 
-  constrTranslatorsG sty =
+  constrTranslatorsG =
     [ tDup (sym @name)
-        $ translatorG @(C1 (MetaCons name fix False) fields k) undefined sty
+        $ translatorG @(C1 (MetaCons name fix False) fields k) undefined
     ]
   fieldTranslatorsG = enumLabel $ fieldTranslatorsG @(fields k)
 
@@ -540,7 +595,7 @@ class (Typeable a, BitPack a) => WaveformLUT a where
   -- | Provides the hierarchy of subsignals.
   structureL :: Structure
   default structureL :: (WaveformG (Rep a ())) => Structure
-  structureL = structureT $ translatorG @(Rep a ()) 0 (L.repeat WSDefault)
+  structureL = structureT $ translatorG @(Rep a ()) 0
 
   {- | Translate a value. The translations must adhere to the structure defined in 'structureL'.
   This function must be robust to @undefined@ values!
@@ -847,13 +902,17 @@ deriving via WaveformForConst () instance Waveform ()
 
 -- | Configure styles through style variables @bool_false@ and @bool_true@.
 instance Waveform Bool where
-  translator = noConstructorSubsignals False $ defaultTranslator @Bool ["$bool_false", "$bool_true"]
+  translator =
+    noConstructorSubsignals False
+      $ withConstructorStyles ["$bool_false", "$bool_true"]
+      $ defaultTranslator @Bool
 
 -- | Configure styles through style variables @maybe_nothing@ and @maybe_just@.
 instance (Waveform a) => Waveform (Maybe a) where
   translator =
     noConstructorSubsignals True
-      $ defaultTranslator @(Maybe a) ["$maybe_nothing", WSVar "maybe_just" $ WSInherit 0]
+      $ withConstructorStyles ["$maybe_nothing", WSVar "maybe_just" $ WSInherit 0]
+      $ defaultTranslator @(Maybe a)
 
 -- | Configure styles through style variables @either_left@ and @either_right@.
 instance (Waveform a, Waveform b) => Waveform (Either a b) where

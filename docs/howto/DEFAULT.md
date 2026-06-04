@@ -2,10 +2,47 @@
 
 There are a few modifications you can easily make to the translator that is
 automatically derived for a data type, without doing a fully custom `Waveform`
-implementation. These work by taking the default translator using `defaultTranslator`,
+implementation. These work by taking the default unstyled translator using `defaultTranslator`,
 and then modifying it.
 
 For applying styles, see [this guide](STYLES.md).
+
+### ADDING CONSTRUCTOR STYLES
+
+Styles can be added to different translators using `withConstructorStyles`.
+This function takes a list of styles, and applies it to the different constructors
+as they appear in the default translator.
+
+By default, this is applied with the `constructorStyles` field in `Waveform`,
+i.e.:
+
+```hs
+instance Waveform a where
+  translator = ... $ withConstructorStyles (constructorStyles @a) $ defaultTranslator @a
+```
+
+This function overwrites the styles of styled constructors and constant translations.
+
+
+### PROPAGATING SINGLE FIELD PRODUCT TYPE STYLES
+
+Sometimes you have a data type or constructor that acts as a wrapper for other data
+(constructors with exactly one field). In this case, it is often useful to propagate
+the style of the embedded data, so any peculiarities surface without the need to
+expand the subsignals of the constructor. This can be achieved by applying the `WSInherit 0`
+style.
+
+Instead of manually adding this style, you can call `inheritSingleFieldStyle` to do so
+automatically. This is done by default in `Waveform`'s `translator` function:
+
+```hs
+instance Waveform a where
+  translator = inheritSingleFieldStyle $ ... $ defaultTranslator @a
+```
+
+The function does not overwrite the styles of constructors that have been explicitly styled
+already.
+
 
 ### A MORE COMPACT FORMAT
 
