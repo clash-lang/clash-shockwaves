@@ -10,6 +10,7 @@ use std::iter::zip;
 
 use crate::data::*;
 use crate::state::*;
+use crate::util::CLog;
 
 lazy_static! {
     // Constant "default" value for missing translators
@@ -209,7 +210,6 @@ impl<'a> AsRef<str> for StringLike<'a> {
 impl BitPart {
     /// Manipulate bits according to the `BitPart` structure.
     fn from<'a>(&'a self, bits: &'a str) -> StringLike<'a> {
-        // TODO: use Either<String,&str> for optimization
         match self {
             BitPart::In => StringLike::Slice(bits),
             BitPart::Concat(bps) => {
@@ -223,9 +223,12 @@ impl BitPart {
                 )
             }
             BitPart::Lit(s) => StringLike::Slice(s),
-            BitPart::Slice((a, b), bp) => match bp.from(bits) {
-                StringLike::Full(s) => StringLike::Full(s[*a..*b].to_string()),
-                StringLike::Slice(s) => StringLike::Slice(&s[*a..*b]),
+            BitPart::Slice((from, to), bp) => match bp.from(bits) {
+                StringLike::Full(s) if s.len() >= *to => {
+                    StringLike::Full(s[*from..*to].to_string())
+                }
+                StringLike::Slice(s) if s.len() >= *to => StringLike::Slice(&s[*from..*to]),
+                _ => StringLike::Full("x".repeat(*to - *from)),
             },
             BitPart::HasUndefined(bp) => {
                 StringLike::Slice(if bp.from(bits).as_ref().contains('x') {
@@ -250,7 +253,7 @@ impl BitPart {
             ),
             BitPart::And(bps) | BitPart::Or(bps) | BitPart::Xor(bps) => {
                 let mut parts = bps.iter().map(|bp| bp.from(bits)).collect::<Vec<_>>();
-                let n = parts.iter().map(|b| b.as_ref().len()).max().unwrap();
+                let n = parts.iter().map(|b| b.as_ref().len()).max().unwrap(); // unwrap fails when the list is empty
                 parts.iter_mut().for_each(|b| {
                     let l = b.as_ref().len();
                     if l != n {
@@ -262,7 +265,7 @@ impl BitPart {
                     .map(|i| {
                         parts
                             .iter()
-                            .map(|b| b.as_ref().chars().nth(i).unwrap())
+                            .map(|b| b.as_ref().chars().nth(i).unwrap()) // indexing cannot fail here because all shorter inputs get extended
                             .collect()
                     })
                     .collect::<Vec<Vec<_>>>();
@@ -310,10 +313,10 @@ impl BitPart {
                 })
             }
             BitPart::OneHot((f, t), bp) | BitPart::NHot((f, t), bp) => {
-                let k = match usize::from_str_radix(bp.from(bits).as_ref(), 2) {
+                let k = match u128::from_str_radix(bp.from(bits).as_ref(), 2) {
                     Ok(k) => k,
                     Err(_) => {
-                        return StringLike::Full("x".repeat(t - f));
+                        return StringLike::Full("x".repeat((t - f) as usize));
                     }
                 };
 
@@ -416,7 +419,7 @@ impl Translation {
             return;
         };
 
-        self.0.as_mut().unwrap().1 =
+        self.0.as_mut().unwrap().1 = //unwrap is safe due to return above
             if let Some((_name, Translation(Some((_v, s, _p)), _))) = self.1.get(*n) {
                 s.clone()
             } else {
@@ -429,7 +432,7 @@ impl Translation {
 impl State {
     /// Translate a value.
     pub fn translate(&mut self, signal: &str, value: &str) -> TranslationResult {
-        let ty = self.data.get_type(signal).unwrap().clone();
+        let ty = self.data.get_type(signal).unwrap().clone(); // if the type of the signal is unknown, the plugin reports not being able to translate it
         let translator = self.data.get_translator(&ty);
         let mut translation = self.translate_with(translator, value);
 
@@ -592,11 +595,8 @@ impl State {
             }
             /* Sum translators */
             TranslatorVariant::Sum(translators) => {
-                if translators.is_empty() {
-                    return error("{no subtranslators}");
-                }
                 let n = translators.len();
-                let bits = (usize::BITS - (n - 1).leading_zeros()) as usize;
+                let bits = n.clog() as usize;
                 let variant = if bits > 0 {
                     usize::from_str_radix(&value[..bits], 2)
                 } else {

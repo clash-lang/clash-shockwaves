@@ -101,7 +101,7 @@ impl Data {
 impl State {
     /// Determine the structure of a signal.
     pub fn structure(&mut self, signal: &str) -> VariableInfo {
-        let ty = self.data.get_type(signal).unwrap();
+        let ty = self.data.get_type(signal).unwrap(); // if the type is unknown, the plugin reports it cannot translate it
 
         // try to return structure from cache
         if let Some(st) = self.cache.structures.get(ty) {
