@@ -6,10 +6,9 @@ and how to do so.
 First, let's go through the functions and see what we need to do:
 
 - `translator` is the most important function, as it produces the data that is used
-   to determine how bits in the VCD file get translated. `addTypes` and `addSubtypes`
-   are used to register these values. This will be covered at length.
-- `width` is the bitwidth as reported by `BitSize` and should not be changed.
-- Similarly, `typeName` does not need to be changed, unless you are writing an
+   to determine how bits in the VCD file get translated.
+- `typeName` provides a unique and legible ID for the type.
+  It does not need to be changed, unless you are writing an
   instance meant to be used as a `derive via`. In that case, use:
   ```hs
   instance Waveform (WaveformForX a) where
