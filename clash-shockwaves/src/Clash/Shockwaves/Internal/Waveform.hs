@@ -91,15 +91,23 @@ tDup name (Translator w t) = Translator w $ TDuplicate name (Translator w t)
 
 -- | Generate a translator reference for a type.
 tRef :: forall a. (Waveform a) => Translator
-tRef =
-  Translator (bitSize @a)
-    $ TRef
-      (typeName @a)
-      TypeRef
-        { translateBinRef = translateBin @a
-        , translatorRef = translator @a
-        , structureRef = structure @a
-        }
+tRef
+  | w == bitSize @a =
+      Translator (bitSize @a)
+        $ TRef
+          (typeName @a)
+          TypeRef
+            { translateBinRef = translateBin @a
+            , translatorRef = translator @a
+            , structureRef = structure @a
+            }
+  | otherwise =
+      error
+        $ "The Translator width and BitSize for type "
+        <> show (typeName @a)
+        <> " do not match."
+ where
+  Translator w _ = translator @a
 
 -- | Create a constant translator that consumes 0 bits and has no subsignals.
 tConst :: Render -> Translator
