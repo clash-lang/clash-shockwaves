@@ -137,7 +137,6 @@ import qualified Data.Text             as Text
 import           Data.Default          (Default(..))
 import           Data.Time.Clock       (UTCTime, getCurrentTime)
 import           Data.Time.Format      (formatTime, defaultTimeLocale)
-import           Data.Version          (showVersion)
 import           GHC.Natural           (Natural)
 import           GHC.Stack             (HasCallStack)
 import           GHC.TypeLits          (KnownNat, type (+))
