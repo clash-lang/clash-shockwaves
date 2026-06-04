@@ -29,6 +29,11 @@ file. A `Translator` consists of two values: a width, denoting the number of bit
 is expected to receive, and a a `TranslatorVariant` that actually describes how these bits
 are to be interpreted. There are many variants to choose from which are discussed below.
 
+> **Note:** It is important that the translator associated with a type consumes
+> the exact number of bits used to represent this type, as other types using this
+> translator assume the translation consumes the appropriate number of bits.
+> If a custom implementation does not obey this equality, the type cannot be traced
+> or referenced, and an error is produced instead.
 
 
 #### Constant values

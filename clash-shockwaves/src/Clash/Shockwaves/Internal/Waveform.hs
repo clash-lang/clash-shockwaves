@@ -89,7 +89,10 @@ provided subsignal name.
 tDup :: SubSignal -> Translator -> Translator
 tDup name (Translator w t) = Translator w $ TDuplicate name (Translator w t)
 
--- | Generate a translator reference for a type.
+{- | Generate a translator reference for a type.
+Also checks whether the translator width matches the value of 'bitSize' for
+the type: if not, the function errors.
+-}
 tRef :: forall a. (Waveform a) => Translator
 tRef
   | w == bitSize @a =
