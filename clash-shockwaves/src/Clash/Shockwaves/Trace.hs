@@ -151,7 +151,7 @@ import           GHC.Conc              (pseq)
 -- Shockwaves
 import           Clash.Shockwaves.Internal.Types hiding (Value)
 import           Clash.Shockwaves.Internal.Translator (getStaticLuts)
-import           Clash.Shockwaves.Internal.Waveform hiding (width)
+import           Clash.Shockwaves.Internal.Waveform
 
 #ifdef CABAL
 import           Data.Version          (showVersion)

@@ -152,8 +152,6 @@ tStaticLut lut =
 
 ------------------------------------------ WAVEFORM --------------------------------------
 
-{-# DEPRECATED width "Use bitSize instead" #-}
-
 {- |
 
 'Waveform' is the main class for making types displayable in the waveform viewer.
@@ -192,11 +190,6 @@ class (Typeable a, BitPack a) => Waveform a where
   constructorStyles :: [WaveStyle]
   constructorStyles = []
 
-  {- |
-  Defines the width of the translator based on @bitSize@
-  -}
-  width :: Int
-  width = bitSize @a
 
 {- | Return the default translator that is derived for a data type.
 This default can be modified to obtain a slightly different translator.
