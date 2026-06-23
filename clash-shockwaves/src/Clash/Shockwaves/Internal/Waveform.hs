@@ -190,7 +190,6 @@ class (Typeable a, BitPack a) => Waveform a where
   constructorStyles :: [WaveStyle]
   constructorStyles = []
 
-
 {- | Return the default translator that is derived for a data type.
 This default can be modified to obtain a slightly different translator.
 -}
