@@ -21,6 +21,7 @@ jobs:
       - name: Check cabal file
         run: |
           cd $GITHUB_WORKSPACE/clash-shockwaves
+          cp ../CHANGELOG.md CHANGELOG.md
           ghc --version
           cabal check
       - name: Compile library to docs

@@ -14,7 +14,7 @@ description:         A library for creating typed waveforms.
 bug-reports:         https://github.com/clash-lang/clash-shockwaves/issues
 category:            Hardware
 extra-source-files:  README.md
-                     ../CHANGELOG.md
+                     CHANGELOG.md
                     
 source-repository head
   type: git
