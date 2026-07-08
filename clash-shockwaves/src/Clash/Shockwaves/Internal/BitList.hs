@@ -110,6 +110,7 @@ toInteger :: BitList -> Maybe Integer
 toInteger (BL m i _) | m == 0 = Just $ fromIntegral i
 toInteger _ = Nothing
 
+-- | Check whether any of the bits in the `BitList` are undefined.
 hasUndefined :: BitList -> Bool
 hasUndefined (BL m _ _) = m /= 0
 
