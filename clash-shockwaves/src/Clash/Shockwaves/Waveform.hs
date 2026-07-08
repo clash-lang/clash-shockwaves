@@ -34,6 +34,7 @@ module Clash.Shockwaves.Waveform (
   Structure (..),
   structure,
   structureT,
+  fromTranslation,
 
   -- ** Translator-specific types
   NumberFormat (..),
@@ -54,7 +55,6 @@ module Clash.Shockwaves.Waveform (
   inheritSingleFieldStyle,
   noConstructorSubsignals,
   renameFields,
-  defaultTypeName,
   tRef,
   tDup,
   tStyled,
@@ -64,6 +64,9 @@ module Clash.Shockwaves.Waveform (
   WaveformConst (..),
   WaveformForConst,
   WaveformForNumber (..),
+
+  -- ** Creating special Waveform instances
+  defaultTypeName,
 ) where
 
 import Clash.Shockwaves.Internal.Translator
