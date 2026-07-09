@@ -18,13 +18,13 @@ jobs:
         id: get-version
         run: |
           cd $GITHUB_WORKSPACE/
-          VERSION = cat VERSION
-          TAG = "v$VERSION"
+          VERSION=$(<VERSION)
+          TAG="v$VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "Found version $VERSION"
       - name: Check version matches pushed tag
-        if: github.event_name == "push"
+        if: github.event_name == 'push'
         run: |
           if [[ "${{ github.ref_name }}" != "${{ steps.get-version.outputs.tag }}" ]]; then
             echo "Tag $TAG does not match version in VERSION file"
@@ -63,27 +63,27 @@ jobs:
         if: '!cancelled()'
         with:
           name: Haddock docs
-          path: clash-shockwaves/hackage-dist/clash-shockwaves*.tar.gz
+          path: $GITHUB_WORKSPACE/clash-shockwaves/hackage-dist/clash-shockwaves*.tar.gz
           if-no-files-found: error
       - name: Upload Hackage tarball as artifact
         uses: actions/upload-artifact@v4
         if: '!cancelled()'
         with:
           name: Tarball for Hackage
-          path: clash-shockwaves/dist-newstyle/sdist/clash-shockwaves*.tar.gz
+          path: $GITHUB_WORKSPACE/clash-shockwaves/dist-newstyle/sdist/clash-shockwaves*.tar.gz
           if-no-files-found: error
         
       - name: Upload Haddock docs to release
         uses: Roang-zero1/github-upload-release-artifacts-action@v2
         with:
-          args: "clash-shockwaves/hackage-dist/clash-shockwaves*.tar.gz"
+          args: "$GITHUB_WORKSPACE/clash-shockwaves/hackage-dist/clash-shockwaves*.tar.gz"
           created_tag: "${{ steps.get-version.outputs.tag }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload Hackage tarball to release
         uses: Roang-zero1/github-upload-release-artifacts-action@v2
         with:
-          args: "clash-shockwaves/dist-newstyle/sdist/clash-shockwaves*.tar.gz"
+          args: "$GITHUB_WORKSPACE/clash-shockwaves/dist-newstyle/sdist/clash-shockwaves*.tar.gz"
           created_tag: "${{ steps.get-version.outputs.tag }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
