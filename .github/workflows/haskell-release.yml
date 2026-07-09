@@ -1,4 +1,4 @@
-name: '> haskell-release-build'
+name: '> haskell-release'
 
 on:
   push:
@@ -13,16 +13,40 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Get version number
+        id: get-version
+        run: |
+          cd $GITHUB_WORKSPACE/
+          VERSION = cat VERSION
+          TAG = "v$VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Found version $VERSION"
+      - name: Check version matches pushed tag
+        if: github.event_name == "push"
+        run: |
+          if [[ "${{ github.ref_name }}" != "${{ steps.get-version.outputs.tag }}" ]]; then
+            echo "Tag $TAG does not match version in VERSION file"
+            exit 1
+          fi
+      - name: Set version in cabal file
+        run: |
+          cd $GITHUB_WORKSPACE/
+          sed -i -E -e 's/^(version:\s*)[0-9.]+/\1${{ steps.get-version.outputs.version }}/' clash-shockwaves/clash-shockwaves.cabal
+
       - name: Set up Haskell
         uses: haskell-actions/setup@v2
         with:
           ghc-version: '9.10.3'
           cabal-version: '3.14.2.0'
+        
       - name: Check cabal file
         run: |
           cd $GITHUB_WORKSPACE/clash-shockwaves
           ghc --version
           cabal check
+        
       - name: Compile library to docs
         if: '!cancelled()'
         run: |
@@ -33,29 +57,40 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/clash-shockwaves
           cabal sdist
-      - name: Upload Haddock docs
+
+      - name: Upload Haddock docs as artifact
         uses: actions/upload-artifact@v4
         if: '!cancelled()'
         with:
           name: Haddock docs
           path: clash-shockwaves/hackage-dist/clash-shockwaves*.tar.gz
           if-no-files-found: error
-      - name: Upload Hackage tarball
+      - name: Upload Hackage tarball as artifact
         uses: actions/upload-artifact@v4
         if: '!cancelled()'
         with:
           name: Tarball for Hackage
           path: clash-shockwaves/dist-newstyle/sdist/clash-shockwaves*.tar.gz
           if-no-files-found: error
+        
       - name: Upload Haddock docs to release
         uses: Roang-zero1/github-upload-release-artifacts-action@v2
         with:
           args: "clash-shockwaves/hackage-dist/clash-shockwaves*.tar.gz"
+          created_tag: "${{ steps.get-version.outputs.tag }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload Hackage tarball to release
         uses: Roang-zero1/github-upload-release-artifacts-action@v2
         with:
           args: "clash-shockwaves/dist-newstyle/sdist/clash-shockwaves*.tar.gz"
+          created_tag: "${{ steps.get-version.outputs.tag }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish candidate on Hackage
+        run: |
+          cd $GITHUB_WORKSPACE
+          cabal upload clash-shockwaves/dist-newstyle/sdist/clash-shockwaves*.tar.gz -t ${{ secrets.HACKAGE_TOKEN }}
+          cabal upload -d clash-shockwaves/hackage-dist/*-docs.tar.gz -t ${{ secrets.HACKAGE_TOKEN }}
+

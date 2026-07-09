@@ -1,0 +1,59 @@
+
+name: '> surfer-release'
+
+on:
+  push:
+    tags:
+      - 'v**'
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get version number
+        id: get-version
+        run: |
+          cd $GITHUB_WORKSPACE/
+          VERSION = cat VERSION
+          TAG = "v$VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Found version $VERSION"
+      - name: Check version matches pushed tag
+        if: github.event_name == "push"
+        run: |
+          if [[ "${{ github.ref_name }}" != "${{ steps.get-version.outputs.tag }}" ]]; then
+            echo "Tag $TAG does not match version in VERSION file"
+            exit 1
+          fi
+      - name: Set version in Cargo and VERSION file
+        run: |
+          cd $GITHUB_WORKSPACE/
+          cp VERSION clash/shockwaves/VERSION
+          sed -i -E -e 's/^(version\s*\=\s*")[0-9.]+/\1${{ steps.get-version.outputs.version }}/' surfer-shockwaves/Cargo.toml
+  
+      - name: Compile extension
+        run: |
+          cd $GITHUB_WORKSPACE/surfer-shockwaves
+          rustup target add wasm32-unknown-unknown
+          ./compile.sh here
+
+      - name: Upload WASM file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WASM Surfer extension
+          path: surfer-shockwaves/surfer_shockwaves.wasm
+          if-no-files-found: error
+
+      - name: Upload WASM file to release
+        uses: Roang-zero1/github-upload-release-artifacts-action@v2
+        with:
+          args: "surfer-shockwaves/surfer_shockwaves.wasm"
+          created_tag: "${{ steps.get-version.outputs.tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
