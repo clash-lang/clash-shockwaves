@@ -286,9 +286,7 @@ translateBinT trans@(Translator width variant) bin''@(BL _ _ blLength)
 
 -- structure
 
-{- | Return the t'Structure' implied by a t'Translator'. Useful for determining
-the structure of a constant translation.
--}
+-- | Return the t'Structure' implied by a t'Translator'.
 structureT :: Translator -> Structure
 structureT (Translator _ t) = case t of
   TRef _ TypeRef{structureRef} -> structureRef

@@ -202,7 +202,7 @@ class (Typeable a, BitPack a) => Waveform a where
 This default can be modified to obtain a slightly different translator.
 -}
 defaultTranslator ::
-  forall a. (Waveform a, WaveformG (Rep a ())) => Translator
+  forall a. (BitPack a, WaveformG (Rep a ())) => Translator
 defaultTranslator = translatorG @(Rep a ()) (bitSize @a)
 
 {- | Function to translate values. This function creates a translation from
