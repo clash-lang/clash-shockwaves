@@ -21,10 +21,10 @@ jobs:
 
           git fetch origin "${{ github.base_ref }}"
 
-          # List added files in changelog directory
-          added=$(git diff --name-status "$BASE_REF"...HEAD | grep '^[A|D]' | grep '^A\s\+changelog/' || true)
+          # List added/removed/modified files in changelog directory
+          changelog_diff=$(git diff --name-status "$BASE_REF"...HEAD | grep '^[A|D|M]\s\+changelog/' || true)
 
-          if [ -z "$added" ]; then
+          if [ -z "$changelog_diff" ]; then
             echo "::warning title=Missing changelog entry::No new file added to changelog/"
             exit 1
           else
