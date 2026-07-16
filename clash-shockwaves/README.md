@@ -54,14 +54,43 @@ This style is used for undefined values.
 
 
 
-# Tutorial
+# Quick start
 
 This sections contains instructions for some common uses of Shockwaves.
+See also the [HOWTO guides](https://github.com/clash-lang/clash-shockwaves/tree/main/docs/howto/README.md).
+
+## Trace signals
+
+Shockwaves has the same functions as `Clash.Signal.Trace`, with only minor changes:
+
+```hs
+import qualified Clash.Shockwaves.Trace as T
+
+mainCounter :: ... -> Signal System Bool
+mainCounter = ... (T.trace "counter" counter) ...
+
+main :: IO ()
+main = do
+  let cntrOut = exposeClockResetEnable mainCounter systemClockGen systemResetGen enableGen
+  vcd <- T.dumpVCD (0, 100) cntrOut ["counter"]
+  case vcd of
+    Left msg ->
+      error msg
+    Right (contents,meta) -> do
+      writeFile     "mainCounter.vcd"  contents
+      writeFileJSON "mainCounter.json" meta
+
+```
 
 ## Derive Waveform
 
 The easiest way to use Shockwaves is to simply derive the `Waveform` class for all types
 that appear in the output. This requires `Generic` and `Typeable` to also be derived.
+
+```hs
+data MyData = A Int | B Bool
+  deriving (Generic,Typeable,Waveform,NFDataX,BitPack)
+```
 
 ## Adding coloured constructors
 
@@ -69,6 +98,14 @@ It might be useful to mark the different constructors of a type using various co
 To do this, one simply needs to do a custom implementation of Waveform where `constructorStyles`
 is overwritten with a list of waveform styles, in the order that the constructors appear.
 
+```hs
+{-# LANGUAGE OVerloadedStrings #-}
+
+instance Waveform MyData where
+  constructorStyles = ["#0fc", WSWarn]
+```
+
 ## Custom Waveform instances
 
-For more advanced topic, please see the [HOWTO guides](../docs/howto/README.md).
+It is possible to customize the `Waveform` instances.
+For this, please see the [HOWTO guides](https://github.com/clash-lang/clash-shockwaves/tree/main/docs/howto/README.md).

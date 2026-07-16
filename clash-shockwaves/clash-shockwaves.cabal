@@ -11,7 +11,15 @@ description:         A library for creating typed waveforms.
                      The library allows the user to specify what the waveforms
                      for a data type should look like, and includes tools for
                      storing this metadata in simulations.
+bug-reports:         https://github.com/clash-lang/clash-shockwaves/issues
 category:            Hardware
+extra-source-files:  README.md
+                     CHANGELOG.md
+                    
+source-repository head
+  type: git
+  location: https://github.com/clash-lang/clash-shockwaves.git
+  subdir: clash-shockwaves
 
 flag large-tuples
   description:
