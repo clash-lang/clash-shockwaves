@@ -3,6 +3,9 @@ name: changelog-check
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'clash-shockwaves/**'
+      - 'surfer-shockwaves/**'
 
 jobs:
   changelog:
