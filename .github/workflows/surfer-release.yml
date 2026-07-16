@@ -34,7 +34,7 @@ jobs:
       - name: Set version in Cargo and VERSION file
         run: |
           cd $GITHUB_WORKSPACE/
-          cp VERSION clash/shockwaves/VERSION
+          cp VERSION surfer-shockwaves/VERSION
           sed -i -E -e 's/^(version\s*\=\s*")[0-9.]+/\1${{ steps.get-version.outputs.version }}/' surfer-shockwaves/Cargo.toml
   
       - name: Compile extension
