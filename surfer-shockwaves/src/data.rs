@@ -2,7 +2,7 @@
 
 use egui::Color32;
 use serde::Deserialize;
-use serde::de::{Deserializer, IntoDeserializer};
+use serde::de::{Deserializer, Error};
 use std::collections::HashMap;
 
 pub type SigMap = HashMap<String, String>;
@@ -226,27 +226,41 @@ pub enum BitPart {
 #[derive(Deserialize, Debug, Clone, Copy)]
 #[serde(remote = "NumberFormat")]
 pub enum NumberFormat {
-    #[serde(alias = "S")]
     Sig(Prec),
-    #[serde(alias = "U")]
     Uns,
-    #[serde(alias = "H")]
     Hex,
-    #[serde(alias = "O")]
     Oct,
-    #[serde(alias = "B")]
     Bin,
 }
+
 impl<'de> Deserialize<'de> for NumberFormat {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        let s = String::deserialize(deserializer)?;
-        if s == "Sig" || s == "S" {
-            Ok(NumberFormat::Sig(DEFAULT_SIG_NEG_PREC))
-        } else {
-            NumberFormat::deserialize(s.into_deserializer())
+        let val = serde_json::Value::deserialize(deserializer)?;
+        match val {
+            serde_json::Value::String(s) if s == "U" || s == "Uns" => Ok(NumberFormat::Uns),
+            serde_json::Value::String(s) if s == "H" || s == "Hex" => Ok(NumberFormat::Hex),
+            serde_json::Value::String(s) if s == "O" || s == "Oct" => Ok(NumberFormat::Oct),
+            serde_json::Value::String(s) if s == "B" || s == "Bin" => Ok(NumberFormat::Bin),
+            serde_json::Value::String(s) if s == "S" || s == "Sig" => {
+                Ok(NumberFormat::Sig(DEFAULT_SIG_NEG_PREC))
+            }
+            serde_json::Value::Object(m) if m.len() == 1 => {
+                if let Some(serde_json::Value::Number(p)) = m.get("Sig").or(m.get("S")) {
+                    Ok(NumberFormat::Sig(
+                        p.as_i64()
+                            .ok_or_else(|| D::Error::custom("Precedence outside range"))?
+                            as i16,
+                    ))
+                } else {
+                    Err(D::Error::custom(
+                        "Could not deserialize number format from map",
+                    ))
+                }
+            }
+            _ => Err(D::Error::custom("Could not deserialize number format")),
         }
     }
 }
