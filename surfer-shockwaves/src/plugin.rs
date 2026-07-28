@@ -47,7 +47,7 @@ lazy_static! {
 pub fn new() -> FnResult<()> {
     info!("SHOCKWAVES: Created plugin");
 
-    let dir = unsafe { translators_config_dir(()) };
+    let dir = unsafe { translators_config_dir() };
     if let Ok(Json(Some(dir))) = dir {
         let dir = Utf8PathBuf::from(&dir);
         info!("SHOCKWAVES: Config dir: {dir:?}");
@@ -229,5 +229,5 @@ pub fn read_style_file(file: String) -> Option<Table> {
 extern "ExtismHost" {
     pub fn read_file(filename: String) -> Vec<u8>;
     pub fn file_exists(filename: String) -> bool;
-    pub fn translators_config_dir(_user_data: ()) -> Json<Option<String>>;
+    pub fn translators_config_dir() -> Json<Option<String>>;
 }
