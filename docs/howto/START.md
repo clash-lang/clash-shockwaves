@@ -23,7 +23,7 @@ counter = register 0 (counter + 500)
 main :: IO ()
 main = do
   let cntrOut = exposeClockResetEnable counter systemClockGen systemResetGen enableGen
-  vcddata <- dumpVCD (0, 100) (traceSignal "counter" cntrOut) []
+  vcddata <- dumpVCD (0, 100) (traceSignal "counter" cntrOut) ["counter"]
   case vcddata of
     Left msg ->
       error msg
@@ -45,7 +45,7 @@ counter = register 0 (counter + 500)
 main :: IO ()
 main = do
   let cntrOut = exposeClockResetEnable counter systemClockGen systemResetGen enableGen
-  vcddata <- dumpVCD (0, 100) (traceSignal "counter" cntrOut) []
+  vcddata <- dumpVCD (0, 100) (traceSignal "counter" cntrOut) ["counter"]
   case vcddata of
     Left msg ->
       error msg
@@ -84,7 +84,7 @@ disco = register Red $ next <$> disco
 main :: IO ()
 main = do
   let discoOut = exposeClockResetEnable disco systemClockGen systemResetGen enableGen
-  vcddata <- dumpVCD (0, 100) (traceSignal "disco" discoOut) []
+  vcddata <- dumpVCD (0, 100) (traceSignal "disco" discoOut) ["disco"]
   case vcddata of
     Left msg ->
       error msg
