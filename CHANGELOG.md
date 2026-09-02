@@ -1,3 +1,13 @@
+## v1.1.1 - *16 Jul, 2026*
+
+### Changed:
+- `defaultTranslator` now has a `BitPack` constraint instead of `Waveform`.
+  [#135](https://github.com/clash-lang/clash-shockwaves/issues/135)
+
+### Fixed:
+- Fixed a bug that caused the Surfer plugin to reject metadata files including signed integer translators.
+  [#142](https://github.com/clash-lang/clash-shockwaves/issues/142)
+
 ## v1.1.0 - *08 Jun, 2026*
 
 ### Consistency changes:
