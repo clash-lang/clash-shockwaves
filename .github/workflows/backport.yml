@@ -1,0 +1,113 @@
+name: backport
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  find-backports:
+    if: >
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'main'
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      versions: ${{ steps.labels.outputs.versions }}
+
+    steps:
+      - name: Find backport labels
+        id: labels
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels) }}
+        shell: bash
+        run: |
+          versions=$(
+            jq -c '
+              [
+                .[]
+                | .name
+                | select(test("^backport-[0-9]+\\.[0-9]+$"))
+                | sub("^backport-"; "")
+              ]
+              | unique
+            ' <<< "$LABELS"
+          )
+
+          echo "Backport versions: $versions"
+
+          echo "versions=$versions" >> "$GITHUB_OUTPUT"
+
+  backport:
+    needs: find-backports
+
+    if: needs.find-backports.outputs.versions != '[]'
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ${{ fromJSON(needs.find-backports.outputs.versions) }}
+
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.version }}
+          fetch-depth: 0
+
+      - name: Create backport branch
+        id: branch
+        env:
+          SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
+          VERSION: ${{ matrix.version }}
+        shell: bash
+        run: |
+          BRANCH="${SOURCE_BRANCH}-backport-${VERSION}"
+
+          echo "Creating backport branch: $BRANCH"
+
+          git switch -c "$BRANCH"
+
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Cherry-pick squash merge commit
+        env:
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        shell: bash
+        run: |
+          echo "Cherry-picking squash merge commit: $MERGE_SHA"
+
+          git cherry-pick "$MERGE_SHA"
+
+      - name: Push backport branch
+        env:
+          BRANCH: ${{ steps.branch.outputs.branch }}
+        shell: bash
+        run: |
+          git push --set-upstream origin "$BRANCH"
+
+      - name: Create backport PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.branch.outputs.branch }}
+          VERSION: ${{ matrix.version }}
+          ORIGINAL_PR: ${{ github.event.pull_request.number }}
+          ORIGINAL_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          gh pr create \
+            --base "$VERSION" \
+            --head "$BRANCH" \
+            --title "[BACKPORT ${VERSION}] ${ORIGINAL_TITLE}" \
+            --body "Backport of #${ORIGINAL_PR} from main to ${VERSION}." \
+            --label "BACKPORT"
