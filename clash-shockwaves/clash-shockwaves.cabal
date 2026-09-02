@@ -13,8 +13,9 @@ description:         A library for creating typed waveforms.
                      storing this metadata in simulations.
 bug-reports:         https://github.com/clash-lang/clash-shockwaves/issues
 category:            Hardware
-extra-source-files:  README.md
-                     CHANGELOG.md
+extra-source-files:  
+--ON_RELEASE         README.md
+--ON_RELEASE         CHANGELOG.md
                     
 source-repository head
   type: git
