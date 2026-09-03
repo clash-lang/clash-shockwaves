@@ -10,35 +10,21 @@ default_cats:
   UPKEEP:
     title: "Upkeep"
     rank: 1
-    itemize: true
-    notitle: false
   ADDED:
     title: "Added"
     rank: 2
-    itemize: true
-    notitle: false
   CHANGED:
     title: "Changed"
     rank: 3
-    itemize: true
-    notitle: false
   FIXED:
     title: "Fixed"
     rank: 4
-    itemize: true
-    notitle: false
   DEPRECATED:
     title: "Deprecated"
     rank: 5
-    itemize: true
-    notitle: false
   REMOVED:
     title: "Removed"
     rank: 6
-    itemize: true
-    notitle: false
   PERFORMANCE:
     title: "Performance"
     rank: 7
-    itemize: true
-    notitle: false
