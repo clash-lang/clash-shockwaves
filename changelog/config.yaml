@@ -1,2 +1,30 @@
 project: "clash-lang/clash-shockwaves"
 title_format: "## v{version} - *{date}*"
+md_pr_link: "[!{pr}]({pr_url})"
+default_cats:
+  HIGHLIGHT:
+    title: "Highlights"
+    rank: -1
+    itemize: false
+    notitle: true
+  UPKEEP:
+    title: "Upkeep"
+    rank: 1
+  ADDED:
+    title: "Added"
+    rank: 2
+  CHANGED:
+    title: "Changed"
+    rank: 3
+  FIXED:
+    title: "Fixed"
+    rank: 4
+  DEPRECATED:
+    title: "Deprecated"
+    rank: 5
+  REMOVED:
+    title: "Removed"
+    rank: 6
+  PERFORMANCE:
+    title: "Performance"
+    rank: 7
