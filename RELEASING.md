@@ -23,7 +23,8 @@ on these branches.
 
 - Create a release branch (`release/<X>.<Y>.<Z>`).
 - Update the version number in VERSION.
-- Aggregate the changelog (in a **single separate** commit)
+- Aggregate the changelog (in a **single separate** commit) (`qlog collect -i CHANGELOG.md -v <X>.<Y>.<Z>`).
+  Keep the commands to post to GH locally (`qlog gh msg -i -p`).
 - Create a changelog update branch `changelog/<X>.<Y>.<Z>` on `main`,
   cherry-pick the previous commit, and create a PR.
 - Create a PR from the release branch to the major release branch,
@@ -34,11 +35,13 @@ on these branches.
 - Verify the release pipelines did not fail. If further corrections are required,
   they can be executed manually, and will try to upload artifacts to the release
   matching the version in the `VERSION` file.
+- Run the commands to send messages on GH.
+- Approve the release cadidate on Hackage.
 
 # Bugfixes to older versions
 
 ## Backporting fixes
-- Cherry-pick bugfix commits into the version branch.
+- Cherry-pick bugfix commits into the version branch (or create a branch and PR).
 
 ## Version-specific bugs
 - Update version branch through a branch+PR.
