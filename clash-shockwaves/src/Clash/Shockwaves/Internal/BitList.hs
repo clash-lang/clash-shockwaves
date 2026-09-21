@@ -1,5 +1,4 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeAbstractions #-}
 
 {- |
 Copyright  :  (C) 2025-2026, QBayLogic B.V.
@@ -49,8 +48,8 @@ length :: BitList -> Int
 length (BL _ _ l) = l
 
 -- | Convert a 'BitVector' into a 'BitList'.
-bvToBl :: (KnownNat n) => BitVector n -> BitList
-bvToBl (BV @n m i) = BL m i (natToNum @n)
+bvToBl :: forall n. (KnownNat n) => BitVector n -> BitList
+bvToBl (BV m i) = BL m i (natToNum @n)
 
 {- | Convert a 'BitList' into a 'BitVector', provided that is has the right number
 of bits
