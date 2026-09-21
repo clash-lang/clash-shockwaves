@@ -1,3 +1,17 @@
+## v1.1.2 - *03 Sep, 2026*
+
+### Upkeep:
+- The Surfer plugin now works with the latest Surfer builds (which are labeled 0.7.0, but do not match the 0.7.0 release).
+  [#156](https://github.com/clash-lang/clash-shockwaves/issues/156)
+
+### Added:
+- There is now a Nix flake for the project.
+  [!157](https://github.com/clash-lang/clash-shockwaves/pull/157)
+
+### Fixed:
+- Fixed several code examples in the getting started HOWTO.
+  [#152](https://github.com/clash-lang/clash-shockwaves/issues/152)
+
 ## v1.1.1 - *16 Jul, 2026*
 
 ### Changed:
