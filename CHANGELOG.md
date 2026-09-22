@@ -1,3 +1,9 @@
+## v<version> - *22 Sep, 2026*
+
+### Fixed:
+- Fixed compilation with GHC 9.6.
+  [!166](https://github.com/clash-lang/clash-shockwaves/pull/166)
+
 ## v1.1.2 - *03 Sep, 2026*
 
 ### Upkeep:
