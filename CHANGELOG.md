@@ -1,4 +1,4 @@
-## v<version> - *22 Sep, 2026*
+## v1.1.3 - *22 Sep, 2026*
 
 ### Fixed:
 - Fixed compilation with GHC 9.6.
