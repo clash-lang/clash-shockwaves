@@ -25,15 +25,19 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
         shell: bash
         run: |
           versions=$(
-            gh pr view $PR --json labels --jq '
-              .labels[]
-              | .name
-              | select(test("^backport-[0-9]+\\.[0-9]+$"))
-              | sub("^backport-"; "")
-            ' <<< "$LABELS"
+            gh pr view "$PR" \
+              --repo "$REPO" \
+              --json labels \
+              --jq '
+                [.labels[]
+                | .name
+                | select(test("^backport-[0-9]+\\.[0-9]+$"))
+                | sub("^backport-"; "")]
+              '
           )
 
           echo "Backport versions: $versions"
