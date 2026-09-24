@@ -18,6 +18,40 @@
           inherit system;
         };
 
+        surfer-shockwaves = generic-pkgs.rustPlatform.buildRustPackage {
+          pname = "surfer-shockwaves";
+          version = "0.0.0";
+
+          src = ./surfer-shockwaves;
+          cargoHash = "sha256-j1j4ecc+dECC4SdMDpNksam1OUsFpDsFv0TB85dmUh8=";
+
+          # Required to link wasm32-unknown-unknown targets
+          nativeBuildInputs = [ generic-pkgs.lld ];
+
+          # Since we want to target wasm32-unknown-unknown and not our host system, we override the
+          # default build and install phases
+          buildPhase = ''
+            runHook preBuild
+
+            cargo build --release --target=wasm32-unknown-unknown
+
+            runHook postBuild
+          '';
+
+          installPhase = ''
+            runHook preInstall
+            mkdir -p $out/lib
+
+            mv target/wasm32-unknown-unknown/release/surfer_shockwaves.wasm $out/lib
+
+            runHook postInstall
+          '';
+
+          # Since this will try building for the host system again, skip
+          # There are no tests to run anyhow
+          doCheck = false;
+        };
+
         all-overlays = builtins.listToAttrs (builtins.map (compiler-version:
           let
             overlay = final: prev: {
@@ -57,12 +91,10 @@
                 hs-pkgs.fourmolu
 
                 # For the Rust package
-                # NOTE: we do not build the Rust package, simply provide an environment that can be
-                # used to compile it with
                 generic-pkgs.cargo
                 generic-pkgs.clippy
                 generic-pkgs.rust-analyzer
-                generic-pkgs.lld # Required for the wasm32-unknown-unknown target
+                generic-pkgs.lld
               ]
             ;
           }) all-hs-pkgs;
@@ -84,6 +116,10 @@
 
         # The default directly refers to the default package of the default ghc version of this flake
         # All other entries aren't packages, they're a set of packages for each supported ghc version
-        packages = all-packages // { default = all-packages.${default-version}.${default-package}; };
+        packages = all-packages // {
+          default = all-packages.${default-version}.${default-package};
+
+          inherit surfer-shockwaves;
+        };
       });
 }
